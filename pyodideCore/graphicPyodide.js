@@ -16,7 +16,9 @@ const defineNamespaceCode = `
 default_ns = globals().copy()
 `;
 
-function GraphicPyodide() {
+function GraphicPyodide(runPythonAsyncFunction, p5Context) {
+    let runPythonAsync = runPythonAsyncFunction;
+    let p5 = p5Context;
     let gameCode = "";
     let gameMapper = {
         "clicker": [preBuiltCode.graphicClickerCode, 'change_colour(colour)'],
@@ -39,7 +41,8 @@ function GraphicPyodide() {
             preBuiltCode.graphicPackageCode,
             defineNamespaceCode
         ].join('\n');
-        window.pyodide.runPython(code);
+        // runPython(code);
+        runPython('print("Setup Code Loaded!!! (from web worker)")');
     }
 
     this.runCode = function(userCode) {
@@ -55,7 +58,23 @@ function GraphicPyodide() {
         if (window.instance) {
             window.instance.remove();
         }
-        window.pyodide.runPython(code);
+        runPython('print("Normal Code Loaded!!! (from web worker)")');
+    }
+
+    async function runPython(code) {
+        let context = {};
+        try {
+            const { results, error } = await runPythonAsync(code, context);
+            if (results) {
+              console.log("pyodideWorker return results: ", results);
+            } else if (error) {
+              console.log("pyodideWorker error: ", error);
+            }
+        } catch (e) {
+            console.log(
+              `Error in pyodideWorker at ${e.filename}, Line: ${e.lineno}, ${e.message}`,
+            );
+        }
     }
 
     this.setGameType = function(gameType) {

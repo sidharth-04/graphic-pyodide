@@ -1,4 +1,5 @@
 import GraphicPyodide from "./pyodideCore/graphicPyodide.js";
+import {asyncRun} from "./workerUtil/py-worker.js";
 
 let editor;
 let graphicPyodide;
@@ -22,15 +23,8 @@ async function setup() {
   editor.setTheme("ace/theme/clouds");
   editor.session.setMode("ace/mode/python");
 
-  // Load pyodide
-  const config = {
-    indexURL : "https://cdn.jsdelivr.net/pyodide/v0.18.1/full/",
-    fullStdLib: false,
-  }
-  window.pyodide = await loadPyodide(config);
-
   // Load GraphicPyodide object
-  graphicPyodide = new GraphicPyodide();
+  graphicPyodide = new GraphicPyodide(asyncRun, p5);
   graphicPyodide.setup();
 
   // Loading a graphic game, comment out if not needed
