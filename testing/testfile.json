@@ -1,0 +1,12 @@
+{
+    "tests": [
+        {
+            "name": "print function used",
+            "type": "regex",
+            "feedback": "Check if you used the print function.",
+            "info": {
+                "str_to_check": "/print\\s*\\(\\s*.*\\)/m"
+            }
+        }
+    ]
+}
