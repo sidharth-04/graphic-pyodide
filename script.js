@@ -30,7 +30,7 @@ async function setup() {
   window.pyodide = await loadPyodide(config);
 
   // Load GraphicPyodide object
-  graphicPyodide = new GraphicPyodide();
+  graphicPyodide = new GraphicPyodide(window.pyodide);
   graphicPyodide.setup();
 
   // Loading a graphic game, comment out if not needed

@@ -16,7 +16,8 @@ const defineNamespaceCode = `
 default_ns = globals().copy()
 `;
 
-function GraphicPyodide() {
+function GraphicPyodide(pyodideInstance) {
+    let pyodide = pyodideInstance
     let gameCode = "";
     let gameMapper = {
         "clicker": [preBuiltCode.graphicClickerCode, 'change_colour(colour)'],
@@ -39,7 +40,7 @@ function GraphicPyodide() {
             preBuiltCode.graphicPackageCode,
             defineNamespaceCode
         ].join('\n');
-        window.pyodide.runPython(code);
+        pyodide.runPython(code);
     }
 
     this.runCode = function(userCode) {
@@ -55,7 +56,7 @@ function GraphicPyodide() {
         if (window.instance) {
             window.instance.remove();
         }
-        window.pyodide.runPython(code);
+        pyodide.runPython(code);
     }
 
     this.setGameType = function(gameType) {
