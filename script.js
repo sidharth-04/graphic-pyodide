@@ -33,7 +33,7 @@ async function setup() {
   graphicPyodide = new GraphicPyodide();
   graphicPyodide.setup();
 
-  // Loading a graphic game
+  // Loading a graphic game, comment out if not needed
   loadGame("bouncer");
 
   // Set initial code in editor
