@@ -25,7 +25,7 @@ async function setup() {
   // Load pyodide
   const config = {
     indexURL : "https://cdn.jsdelivr.net/pyodide/v0.18.1/full/",
-    fullStdLib: false,
+    fullStdLib: false
   }
   window.pyodide = await loadPyodide(config);
 
@@ -34,7 +34,7 @@ async function setup() {
   graphicPyodide.setup();
 
   // Loading a graphic game, comment out if not needed
-  loadGame("bouncer");
+  loadGame("speedball");
 
   // Set initial code in editor
   editor.setValue(initialUserCode);
@@ -45,6 +45,7 @@ async function setup() {
     document.getElementById('output').value = "";
     let userCode = editor.getValue();
     graphicPyodide.runCode(userCode);
+    runTests(userCode);
   });
 }
 setup();
@@ -53,4 +54,23 @@ function loadGame(gameType) {
   graphicPyodide.setGameType(gameType);
   let functionSignature = graphicPyodide.getFunctionSignatureForGame(gameType);
   initialUserCode = 'def '+functionSignature+':\n\t# Write your code below this line\n\tpass';
+}
+
+function runTests(codeToCheck) {
+  let jsonFile = {"tests": [
+    {
+      "name": "speed function test",
+      "type": "function",
+      "feedback": "Check the sum function",
+      "info": {
+          "function": "get_new_speed",
+          "cases": [
+            {"args": [12], "expected_return_value": 17},
+            {"args": [1], "expected_return_value": 6},
+            {"args": [10], "expected_return_value": 15}
+          ]
+      }
+    }
+  ]};
+  graphicPyodide.runTests(codeToCheck, "", jsonFile);
 }

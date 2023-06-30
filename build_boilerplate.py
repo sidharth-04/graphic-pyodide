@@ -1677,6 +1677,9 @@ def build_code_dict():
     package_file = read_package_file()
     code_dict[package_file["name"]] = package_file["code"]
 
+    testing_file = read_testing_file()
+    code_dict[testing_file["name"]] = testing_file["code"]
+
     game_files = read_game_files()
     for game_file in game_files:
         code_dict[game_file["name"]] = game_file["code"]
@@ -1688,6 +1691,12 @@ def read_package_file():
     with open("./graphicPackage/package.py", "r") as package_file:
         file_code = package_file.read()
     return {"name": "graphicPackageCode", "code": file_code}
+
+def read_testing_file():
+    file_code = ''
+    with open("./testing/testing_script.py", "r") as testing_file:
+        file_code = testing_file.read()
+    return {"name": "testingCode", "code": file_code}
 
 def read_game_files():
     game_files = []

@@ -19,7 +19,9 @@ default_ns = globals().copy()
 function GraphicPyodide(pyodideInstance) {
     let pyodide = pyodideInstance
     let gameCode = "";
-    let gameMapper = {
+    let defaultNamespace = {};
+
+    const gameMapper = {
         "clicker": [preBuiltCode.graphicClickerCode, 'change_colour(colour)'],
         "bouncer": [preBuiltCode.graphicBouncerCode, 'at_edge(x)'],
         "growingsun": [preBuiltCode.graphicGrowingsunCode, 'get_new_size(size)'],
@@ -40,7 +42,15 @@ function GraphicPyodide(pyodideInstance) {
             preBuiltCode.graphicPackageCode,
             defineNamespaceCode
         ].join('\n');
-        pyodide.runPython(code);
+        runPython(code);
+        setDefaultNamespace();
+    }
+    function setDefaultNamespace() {
+        let globalsMap = pyodide.globals.get("default_ns").toJs();
+        defaultNamespace = Array.from(globalsMap.keys());
+    }
+    this.getGlobals = function() {
+        return defaultNamespace;
     }
 
     this.runCode = function(userCode) {
@@ -56,6 +66,18 @@ function GraphicPyodide(pyodideInstance) {
         if (window.instance) {
             window.instance.remove();
         }
+        runPython(code);
+    }
+
+    this.runTests = function(codeToCheck, consoleOutput, jsonFile) {
+        pyodide.globals.set("code_to_check", codeToCheck)
+        pyodide.globals.set("console_output", consoleOutput)
+        pyodide.globals.set("json_file", jsonFile)
+        runPython(preBuiltCode.testingCode);
+    }
+
+    function runPython(code) {
+        // Add some try catch here to catch any errors
         pyodide.runPython(code);
     }
 
