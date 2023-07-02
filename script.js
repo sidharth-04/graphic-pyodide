@@ -4,7 +4,7 @@ let editor;
 let graphicPyodide;
 
 // Standard default code
-let initialUserCode = 
+const defaultCode = 
 `x = 0
 def setup():
     createCanvas(400, 400)
@@ -15,6 +15,7 @@ def draw():
     ellipse(x, 200, 100, 100)
     x += 1
 `;
+let initialUserCode = defaultCode;
 
 async function setup() {
   // Ace editor window
@@ -33,11 +34,8 @@ async function setup() {
   graphicPyodide = new GraphicPyodide(window.pyodide);
   graphicPyodide.setup();
 
-  // Loading a graphic game, comment out if not needed
-  // loadGame("clicker");
-
   // Set initial code in editor
-  editor.setValue(initialUserCode);
+  setToDefault();
 
   const executeBtn = document.getElementById("executeBtn");
   executeBtn.addEventListener("click", () => {
@@ -47,6 +45,17 @@ async function setup() {
     graphicPyodide.runCode(userCode);
     // runTests(userCode);
   });
+
+  // Loading a graphic game, comment out if not needed
+  const graphicGameSelect = document.getElementById("chooseGameType");
+  graphicGameSelect.addEventListener("change", () => {
+    let graphicGameText = graphicGameSelect.value;
+    if (graphicGameText != "Choose a graphic game") {
+      loadGame(graphicGameText);
+    } else {
+      setToDefault();
+    }
+  });
 }
 setup();
 
@@ -54,6 +63,12 @@ function loadGame(gameType) {
   graphicPyodide.setGameType(gameType);
   let functionSignature = graphicPyodide.getFunctionSignatureForGame(gameType);
   initialUserCode = 'def '+functionSignature+':\n\t# Write your code below this line\n\tpass';
+  editor.setValue(initialUserCode);
+}
+function setToDefault() {
+  initialUserCode = defaultCode;
+  editor.setValue(initialUserCode);
+  graphicPyodide.setDefault();
 }
 
 function runTests(codeToCheck) {

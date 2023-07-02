@@ -1,3 +1,7 @@
+#chooseGameType {
+	width: 30vw;
+	margin: auto;
+}
 #editor { 
 	position: absolute;
 	top: 20vh;

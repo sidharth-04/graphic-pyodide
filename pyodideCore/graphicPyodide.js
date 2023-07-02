@@ -93,6 +93,9 @@ function GraphicPyodide(pyodideInstance) {
     this.getFunctionSignatureForGame = function(gameType) {
         return gameMapper[gameType][1];
     }
+    this.setDefault = function() {
+        gameCode = "";
+    }
 }
 
 export default GraphicPyodide;
