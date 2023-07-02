@@ -48,7 +48,9 @@ class Tester:
             return "fail"
 
     def run_output_test(self, data):
-        return "fail"
+        if self.console_output != data.output:
+            return "fail"
+        return "success"
 
     def run_function_test(self, data):
         for case in data.cases:

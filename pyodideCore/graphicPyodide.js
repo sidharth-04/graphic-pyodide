@@ -54,6 +54,7 @@ function GraphicPyodide(pyodideInstance) {
     }
 
     this.runCode = function(userCode) {
+        // Run the trial
         let code = [
             preBuiltCode.clearNamespaceCode,
             preBuiltCode.placeholderCode,
@@ -62,7 +63,12 @@ function GraphicPyodide(pyodideInstance) {
             preBuiltCode.wrapperCode,
             preBuiltCode.startCode,
         ].join('\n');
-
+        if (window.instance) {
+            window.instance.remove();
+        }
+        runPython(code);
+        pyodide.runPython('noLoop()\nredraw(30)')
+        // Run the students code once the trial has been run
         if (window.instance) {
             window.instance.remove();
         }

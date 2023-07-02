@@ -34,7 +34,7 @@ async function setup() {
   graphicPyodide.setup();
 
   // Loading a graphic game, comment out if not needed
-  loadGame("speedball");
+  // loadGame("rockboat");
 
   // Set initial code in editor
   editor.setValue(initialUserCode);
@@ -58,12 +58,20 @@ function loadGame(gameType) {
 
 function runTests(codeToCheck) {
   let jsonFile = {"tests": [
+      {
+        "name": "print function used",
+        "type": "regex",
+        "feedback": "Check if you used the print function.",
+        "info": {
+            "string": "print\\s*\\(\\s*.*\\)"
+        }
+    },
     {
-      "name": "speed function test",
+      "name": "sum 5 function test",
       "type": "function",
       "feedback": "Check the sum function",
       "info": {
-          "function": "get_new_speed",
+          "function": "sum5",
           "cases": [
             {"args": [12], "expected_return_value": 17},
             {"args": [1], "expected_return_value": 6},
