@@ -1,7 +1,7 @@
 print("<< Bouncer game loaded >>")
 
 circleX = 50
-vel = 3
+vel = 2
 
 def setup():
     createCanvas(400, 400)

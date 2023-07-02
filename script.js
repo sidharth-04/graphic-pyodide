@@ -34,7 +34,7 @@ async function setup() {
   graphicPyodide.setup();
 
   // Loading a graphic game, comment out if not needed
-  // loadGame("rockboat");
+  // loadGame("clicker");
 
   // Set initial code in editor
   editor.setValue(initialUserCode);
@@ -45,7 +45,7 @@ async function setup() {
     document.getElementById('output').value = "";
     let userCode = editor.getValue();
     graphicPyodide.runCode(userCode);
-    runTests(userCode);
+    // runTests(userCode);
   });
 }
 setup();

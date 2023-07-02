@@ -25,6 +25,7 @@ def draw():
 		dirVec.y *= -1
 
 def mousePressed(arg):
-    global speed
-    if dist(posVec.x, posVec.y, mouseX, mouseY) < ball_size/2:
-        speed = get_new_speed(speed)
+	global speed
+	if dist(posVec.x, posVec.y, mouseX, mouseY) < ball_size/2:
+		speed = get_new_speed(speed)
+		print("You clicked me! My new speed is "+str(speed))
