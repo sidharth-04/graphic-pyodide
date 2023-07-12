@@ -43,7 +43,7 @@ async function setup() {
     document.getElementById('output').value = "";
     let userCode = editor.getValue();
     graphicPyodide.runCode(userCode);
-    // runTests(userCode);
+    runTests(userCode, "3\n4\n5");
   });
 
   // Loading a graphic game, comment out if not needed
@@ -71,7 +71,7 @@ function setToDefault() {
   graphicPyodide.setDefault();
 }
 
-function runTests(codeToCheck) {
+function runTests(codeToCheck, consoleOutput) {
   let jsonFile = {"tests": [
       {
         "name": "print function used",
@@ -80,6 +80,14 @@ function runTests(codeToCheck) {
         "info": {
             "string": "print\\s*\\(\\s*.*\\)"
         }
+    },
+    {
+      "name": "hello world in output",
+      "type": "output",
+      "feedback": "Check if you used the print function to correctly print a msg.",
+      "info": {
+          "output": "3\n4\n5"
+      }
     },
     {
       "name": "sum 5 function test",
@@ -95,5 +103,6 @@ function runTests(codeToCheck) {
       }
     }
   ]};
-  graphicPyodide.runTests(codeToCheck, "", jsonFile);
+  let testResults = graphicPyodide.runTests(codeToCheck, consoleOutput, jsonFile);
+  console.log(testResults);
 }

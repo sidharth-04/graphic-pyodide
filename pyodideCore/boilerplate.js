@@ -1696,21 +1696,28 @@ class Tester:
         self.run_tests(json_file.tests)
 
     def run_tests(self, test_cases):
+        testing_complete = False
         for test_case in test_cases:
             try:
                 result = self.run_test_case(test_case)
+            except Exception as error:
+                self.handle_test_case_error(error)
+                return
+            else:
+                if testing_complete:
+                    continue
                 self.add_result(test_case, result)
                 if result == "fail":
-                    break
-            except Exception as error:
-                self.output = [{"failure": 'Could not run tests due to error'}]
-                print(error)
-                break
+                    testing_complete = True
     
     def run_test_case(self, test_case):
         test_type = test_case.type
         test_to_run = self.type_mapper[test_type]
         return test_to_run(test_case.info)
+
+    def handle_test_case_error(self, error):
+        self.output = [{"ErrorEncountered": error}]
+        print(error)
 
     def add_result(self, test_case, result):
         if result == "success":
@@ -1728,9 +1735,12 @@ class Tester:
             return "fail"
 
     def run_output_test(self, data):
-        if self.console_output != data.output:
+        pattern = data.output
+        test_string = self.console_output
+        if re.search(pattern, test_string):
+            return "success"
+        else:
             return "fail"
-        return "success"
 
     def run_function_test(self, data):
         for case in data.cases:
@@ -1762,10 +1772,11 @@ def test_student_code():
     print("-----Running Tests-----")
     tester = Tester(code_to_check, console_output, json_file)
     output = tester.get_result()
-    for i in range(len(output)):
-        print("Test "+str(i+1)+":")
-        print(output[i])
-    print("-----Completed-----")
+    # for i in range(len(output)):
+    #     print("Test "+str(i+1)+":")
+    #     print(output[i])
+    # print("-----Completed-----")
+    return output
 test_student_code()
 `;
 

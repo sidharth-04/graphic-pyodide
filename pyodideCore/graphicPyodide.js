@@ -79,7 +79,7 @@ function GraphicPyodide(pyodideInstance) {
         pyodide.globals.set("code_to_check", codeToCheck)
         pyodide.globals.set("console_output", consoleOutput)
         pyodide.globals.set("json_file", jsonFile)
-        runPython(preBuiltCode.testingCode);
+        return pyodide.runPython(preBuiltCode.testingCode).toJs();
     }
 
     function runPython(code) {
