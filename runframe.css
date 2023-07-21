@@ -30,7 +30,10 @@
 	padding: 5px;
 	margin:5px;
 	resize:both;
-	
+	font-size: 12px;
+	-moz-tab-size : 4;
+	-o-tab-size : 4;
+	   tab-size : 4;
 }
 #sketch-holder {
 	position: absolute;
