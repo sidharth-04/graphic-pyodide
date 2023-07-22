@@ -925,114 +925,6 @@ def createCanvas(*args):
 
     return canvas
 
-def __deviceMoved(e):
-  try:
-    _bind_event_function(deviceMoved, e)
-  except NameError:
-    pass
-
-def __deviceTurned(e):
-  try:
-    _bind_event_function(deviceTurned, e)
-  except NameError:
-    pass
-
-def __deviceShaken(e):
-  try:
-    _bind_event_function(deviceShaken, e)
-  except NameError:
-    pass
-
-def __touchEnded(e):
-  try:
-    _bind_event_function(deviceShaken, e)
-  except NameError:
-    pass
-
-def __touchStarted(e):
-  try:
-    _bind_event_function(touchStarted, e)
-  except NameError:
-    pass
-
-def __windowResized(e):
-  try:
-    _bind_event_function(windowResized, e)
-  except NameError:
-    pass
-
-def __touchMoved(e):
-  try:
-    _bind_event_function(touchMoved, e)
-  except NameError:
-    pass
-
-def __mouseMoved(e):
-  try:
-    _bind_event_function(mouseMoved, e)
-  except NameError:
-    pass
-
-def __mouseDragged(e):
-  try:
-    _bind_event_function(mouseDragged, e)
-  except NameError:
-      pass
-
-def __mousePressed(e):
-  try:
-    _bind_event_function(mousePressed, e)
-  except NameError:
-    pass
-
-def __mouseReleased(e):
-  try:
-    _bind_event_function(mouseReleased, e)
-  except NameError:
-    pass
-
-def __mouseClicked(e):
-  try:
-    _bind_event_function(mouseClicked, e)
-  except NameError:
-    pass
-
-def __doubleClicked(e):
-  try:
-    _bind_event_function(doubleClicked, e)
-  except NameError:
-    pass
-
-def __mouseWheel(e):
-  try:
-    _bind_event_function(mouseWheel, e)
-  except NameError:
-    pass
-
-def __keyPressed(e):
-  try:
-    _bind_event_function(keyPressed, e)
-  except NameError:
-    pass
-
-def __keyReleased(e):
-  try:
-    _bind_event_function(keyReleased, e)
-  except NameError:
-    pass
-
-def __keyTyped(e):
-  try:
-    _bind_event_function(keyTyped, e)
-  except NameError:
-    pass
-
-def __keyIsDown(e):
-  try:
-    _bind_event_function(keyIsDown, e)
-  except NameError:
-    pass
-
 def pop(*args):
     p5_pop = _P5_INSTANCE.pop(*args)
     return p5_pop
@@ -1551,22 +1443,30 @@ def global_p5_injection(p5_sketch):
     Injects the p5js's skecth instance as a global variable to setup and draw functions
     """
 
-    def decorator(f, *args, **kwargs):
+    def decorator(f, event_function=False):
         def wrapper(*args, **kwargs):
             global _P5_INSTANCE
             _P5_INSTANCE = p5_sketch
-            return pre_draw(_P5_INSTANCE, f, *args, **kwargs)
+            try:
+                temp_output = pre_draw(_P5_INSTANCE, f, *args, **kwargs)
+                return temp_output
+            except:
+                traceback_str = traceback.format_exc()
+                log_error_to_console(traceback_str)
+        
+        def event_wrapper(event):
+            wrapper()
 
-
+        if event_function:
+            return event_wrapper
         return wrapper
-
 
     return decorator
 
 
 def start_p5(preload_func, setup_func, draw_func, event_functions):
     """
-    This is the entrypoint function. It accepts 2 parameters:
+    This is the entrypoint function. It accepts 4 parameters:
 
     - preload_func: A Python preload callable
     - setup_func: a Python setup callable
@@ -1598,7 +1498,7 @@ def start_p5(preload_func, setup_func, draw_func, event_functions):
     )
     for f_name in [f for f in event_function_names if event_functions.get(f, None)]:
         func = event_functions[f_name]
-        event_func = global_p5_injection(window.instance)(func)
+        event_func = global_p5_injection(window.instance)(func, True)
         setattr(window.instance, f_name, event_func)
 '''
 placeholder_code = '''
