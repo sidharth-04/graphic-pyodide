@@ -19,35 +19,47 @@ def draw():
 let initialUserCode = defaultCode;
 
 async function setup() {
+  $("#control-panel").hide();
+  $("#spinner").show();
+
   // Ace editor window
   editor = ace.edit("editor");
   editor.setTheme("ace/theme/clouds");
   editor.session.setMode("ace/mode/python");
 
+  // Set initial code in editor
+  setToDefault();
+
   // Load GraphicPyodide object
   consoleElement = new Console("output")
   graphicPyodide = new GraphicPyodide(consoleElement);
   await graphicPyodide.setup();
+  graphicPyodide.setOnErrorCallback(() => {
+    stopBtn.disabled = true;
+  });
 
-  // Set initial code in editor
-  setToDefault();
+  $("#spinner").hide();
+  $("#control-panel").show();
 
   const executeBtn = document.getElementById("executeBtn");
+  const stopBtn = document.getElementById("stopBtn");
+  stopBtn.disabled = true;
+
   executeBtn.addEventListener("click", () => {
-    document.getElementById("sketch-holder").innerHTML = "";
+    stopBtn.disabled = false;
     consoleElement.clear();
     let userCode = editor.getValue();
+    // Find a way to check for runtime errors, only syntax errors are recorded now
+    // Maybe run for 30 frames and see if an error shows up
     let errorOccurred = graphicPyodide.runCode(userCode);
     if (!errorOccurred) {
       runTests(userCode, consoleElement.fetchOutput());
     }
   });
 
-  const stopBtn = document.getElementById("stopBtn");
   stopBtn.addEventListener("click", () => {
     graphicPyodide.stopExecution();
-    // document.getElementById("sketch-holder").innerHTML = "";
-    // consoleElement.clear();
+    stopBtn.disabled = true;
   });
 
   // Loading a graphic game, comment out if not needed
@@ -72,7 +84,7 @@ function loadGame(gameType) {
 function setToDefault() {
   initialUserCode = defaultCode;
   editor.setValue(initialUserCode);
-  graphicPyodide.setDefault();
+  if (graphicPyodide) graphicPyodide.setDefault();
 }
 
 function runTests(codeToCheck, consoleOutput) {
@@ -106,6 +118,7 @@ function Console(outputElementID) {
       return;
     }
     outputBox.value += msg+"\n";
+    // console.log('logged');
   }
 
   this.fetchOutput = function() {

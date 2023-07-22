@@ -12,7 +12,7 @@ def draw():
     fill(colours[rect_colour])
     rect(150, 150, 100, 100)
     
-def mouseClicked(arg):
+def mouseClicked():
     if check_clicked(150, 150, 100, 100):
         switch()
 

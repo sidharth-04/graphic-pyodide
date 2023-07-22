@@ -861,9 +861,6 @@ def removeElements(*args):
 def changed(*args):
     return _P5_INSTANCE.changed(*args)
 
-def input(*args):
-    return _P5_INSTANCE.input(*args)
-
 def createDiv(*args):
     return _P5_INSTANCE.createDiv(*args)
 
@@ -1575,6 +1572,7 @@ del globals_copy
 
 const graphicPackageCode = `
 print("<< Core package loaded >>")
+# Provide useful features that student's can use within their programs
 `;
 
 const testingCode = `
@@ -1774,14 +1772,13 @@ def draw():
     fill(circle_colour)
     ellipse(200, 200, 100, 100)
 
-def mousePressed(arg):
+def mousePressed():
     global circle_colour
     if dist(200, 200, mouseX, mouseY) < 50:
         circle_colour = change_colour(circle_colour)
 `;
 
 const graphicSpeedballCode = `
-# This game requires that a get_new_speed(speed) function be defined
 print("<< Speed Ball game loaded >>")
 
 speed = 1
@@ -1807,7 +1804,7 @@ def draw():
 	if posVec.y > 400-ball_size/2 or posVec.y < ball_size/2:
 		dirVec.y *= -1
 
-def mousePressed(arg):
+def mousePressed():
 	global speed
 	if dist(posVec.x, posVec.y, mouseX, mouseY) < ball_size/2:
 		speed = get_new_speed(speed)
@@ -1830,7 +1827,7 @@ def draw():
     fill(31, 161, 29)
     rect(0, 300, 400, 100)
 
-def mousePressed(arg):
+def mousePressed():
     global curr_size
     x, y = mouseX, mouseY
     if dist(200, 300, x, y) < curr_size/2:
@@ -1852,7 +1849,7 @@ def draw():
     fill(colours[rect_colour])
     rect(150, 150, 100, 100)
     
-def mouseClicked(arg):
+def mouseClicked():
     if check_clicked(150, 150, 100, 100):
         switch()
 

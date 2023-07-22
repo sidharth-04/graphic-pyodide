@@ -6,22 +6,23 @@ import sys, code, traceback
 from js import p5, window, document, log_error_to_console
 print(sys.version)
 `
-const defineNamespaceCode = `
-# Define the default namespace
-default_ns = globals().copy()
-`;
 const setInput = `
-def input():
+def input(*args, **kwargs):
     raise Exception('The input function is disabled in graphic mode')
 `;
+const interruptExecutionMessage = "The program was interrupted";
 const setInterrupt = `
 import signal
 
 def custom_interrupt_handler(signum, frame):
-    raise Exception('The program was interrupted')
+    raise Exception('${interruptExecutionMessage}')
 
 signal.signal(signal.SIGINT, custom_interrupt_handler)
 `
+const defineNamespaceCode = `
+# Define the default namespace
+default_ns = globals().copy()
+`;
 
 function GraphicPyodide(consoleObj) {
     let pyodide;
@@ -30,6 +31,7 @@ function GraphicPyodide(consoleObj) {
     let defaultNamespace = {};
     let consoleElement = consoleObj;
     let interruptBuffer = new Uint8Array(new ArrayBuffer(1));
+    let onErrorCallback = () => {};
 
     const gameMapper = {
         "clicker": [preBuiltCode.graphicClickerCode, 'change_colour(colour)'],
@@ -56,10 +58,8 @@ function GraphicPyodide(consoleObj) {
         consoleElement.enable();
     }
     function runInitialCode() {
-        window.log_error_to_console = function(err) {
-            let formattedError = formatError(String(err));
-            outputToConsole(formattedError, true);
-            resetWindow();
+        window.log_error_to_console = function(error) {
+            handleError(error);
         }
         let code = [
             importCode,
@@ -68,7 +68,6 @@ function GraphicPyodide(consoleObj) {
             preBuiltCode.placeholderCode,
             preBuiltCode.wrapperCode,
             preBuiltCode.startCode,
-            preBuiltCode.graphicPackageCode,
             defineNamespaceCode
         ].join('\n');
         pyodide.runPython(code);
@@ -77,43 +76,19 @@ function GraphicPyodide(consoleObj) {
     function setDefaultNamespace() {
         let globalsMap = pyodide.globals.get("default_ns").toJs();
         defaultNamespace = Array.from(globalsMap.keys());
-        console.log(defaultNamespace);
     }
     this.getGlobals = function() {
         return defaultNamespace;
     }
 
-    this.runCode = function(code) {
-        // let trialPassed = runTrial();
-        // if (trialPassed) {
-            userCode = code;
-            let errorOccurred = runUserCode();
-            return errorOccurred;
-        // }
+    this.setOnErrorCallback = function(callback) {
+        onErrorCallback = callback;
     }
 
-    function runTrial() {
-        // Run the user's code for 30 frames and see if an error occurs
-        // Maybe wait 30 frames before running the tests instead
-        consoleElement.disable();
-        let code = [
-            preBuiltCode.clearNamespaceCode,
-            preBuiltCode.placeholderCode,
-            userCode,
-            gameCode,
-            preBuiltCode.wrapperCode,
-            preBuiltCode.startCode,
-        ].join('\n');
-        resetWindow();
-        try {
-            pyodide.runPython(code);
-            pyodide.runPython('noLoop()\nredraw(30)');
-            return true;
-        } catch(error) {
-            let formattedError = formatError(String(error), userCode);
-            outputToConsole(formattedError, true);
-            return false;
-        }
+    this.runCode = function(code) {
+        userCode = code;
+        let errorOccurred = runUserCode();
+        return errorOccurred;
     }
 
     function runUserCode() {
@@ -131,10 +106,16 @@ function GraphicPyodide(consoleObj) {
             pyodide.runPython(code);
             return false;
         } catch(error) {
-            let formattedError = formatError(String(error.message));
-            outputToConsole(formattedError, true);
+            handleError(error)
             return true;
         }
+    }
+
+    function handleError(err) {
+        let formattedError = formatError(String(err));
+        outputToConsole(formattedError, true);
+        onErrorCallback();
+        resetWindow();
     }
 
     function formatError(traceback) {
@@ -145,6 +126,10 @@ function GraphicPyodide(consoleObj) {
         const tracebackLines = match.split("\n");
         tracebackLines.pop();
         let errorLine = tracebackLines.pop();
+        let interruptExecutionError = false;
+        if (errorLine.startsWith('Exception: '+interruptExecutionMessage)) {
+            interruptExecutionError = true;
+        }
 
         const userCodeLines = userCode.split("\n");
         const userCodeOffset = 43;
@@ -152,6 +137,7 @@ function GraphicPyodide(consoleObj) {
         let output = "*** Traceback ***\n";
         let linePattern = /line (\d+)/;
         for (let i = 0; i < tracebackLines.length; i ++) {
+            if (interruptExecutionError) break;
             let tracebackLine = tracebackLines[i];
             if (linePattern.test(tracebackLine)) {
                 let lineNumber = parseInt(tracebackLine.match(linePattern)[1], 10) - userCodeOffset;
@@ -177,6 +163,7 @@ function GraphicPyodide(consoleObj) {
         if (window.instance) {
             window.instance.remove();
         }
+        document.getElementById("sketch-holder").innerHTML = "";
     }
 
     this.stopExecution = function() {

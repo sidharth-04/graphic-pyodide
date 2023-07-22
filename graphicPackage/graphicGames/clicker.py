@@ -11,7 +11,7 @@ def draw():
     fill(circle_colour)
     ellipse(200, 200, 100, 100)
 
-def mousePressed(arg):
+def mousePressed():
     global circle_colour
     if dist(200, 200, mouseX, mouseY) < 50:
         circle_colour = change_colour(circle_colour)

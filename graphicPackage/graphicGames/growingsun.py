@@ -13,7 +13,7 @@ def draw():
     fill(31, 161, 29)
     rect(0, 300, 400, 100)
 
-def mousePressed(arg):
+def mousePressed():
     global curr_size
     x, y = mouseX, mouseY
     if dist(200, 300, x, y) < curr_size/2:

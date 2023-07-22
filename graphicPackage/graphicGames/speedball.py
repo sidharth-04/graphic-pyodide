@@ -1,4 +1,3 @@
-# This game requires that a get_new_speed(speed) function be defined
 print("<< Speed Ball game loaded >>")
 
 speed = 1
@@ -24,7 +23,7 @@ def draw():
 	if posVec.y > 400-ball_size/2 or posVec.y < ball_size/2:
 		dirVec.y *= -1
 
-def mousePressed(arg):
+def mousePressed():
 	global speed
 	if dist(posVec.x, posVec.y, mouseX, mouseY) < ball_size/2:
 		speed = get_new_speed(speed)

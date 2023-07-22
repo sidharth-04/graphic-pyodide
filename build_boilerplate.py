@@ -862,9 +862,6 @@ def removeElements(*args):
 def changed(*args):
     return _P5_INSTANCE.changed(*args)
 
-def input(*args):
-    return _P5_INSTANCE.input(*args)
-
 def createDiv(*args):
     return _P5_INSTANCE.createDiv(*args)
 
