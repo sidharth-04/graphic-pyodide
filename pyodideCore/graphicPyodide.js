@@ -2,31 +2,34 @@ import {preBuiltCode} from "./boilerplate.js";
 
 // Put these code snippets as part of the preBuiltCode
 const importCode = `
-import sys, code
-from js import p5, window, document
+import sys, code, traceback
+from js import p5, window, document, log_error_to_console
 print(sys.version)
-`
-const enableOutputCode = `
-# Redirect output stream
-def write(data):
-    output_box = document.getElementById('output')
-    output_box.value += str(data)
-sys.stdout.write = sys.stderr.write = write
-`;
-const disableOutputCode = `
-def write(data):
-    pass
-sys.stdout.write = sys.stderr.write = write
 `
 const defineNamespaceCode = `
 # Define the default namespace
 default_ns = globals().copy()
 `;
+const setInput = `
+def input():
+    raise Exception('The input function is disabled in graphic mode')
+`;
+const setInterrupt = `
+import signal
 
-function GraphicPyodide() {
+def custom_interrupt_handler(signum, frame):
+    raise Exception('The program was interrupted')
+
+signal.signal(signal.SIGINT, custom_interrupt_handler)
+`
+
+function GraphicPyodide(consoleObj) {
     let pyodide;
     let gameCode = "";
+    let userCode = "";
     let defaultNamespace = {};
+    let consoleElement = consoleObj;
+    let interruptBuffer = new Uint8Array(new ArrayBuffer(1));
 
     const gameMapper = {
         "clicker": [preBuiltCode.graphicClickerCode, 'change_colour(colour)'],
@@ -38,22 +41,30 @@ function GraphicPyodide() {
     }
 
     this.setup = async function() {
-          // Load pyodide
         const config = {
-            indexURL : "https://cdn.jsdelivr.net/pyodide/v0.18.1/full/",
-            fullStdLib: false
+            stdout: (text) => {
+                consoleElement.addToConsole(text);
+            }
         }
         pyodide = await loadPyodide(config);
         await pyodide;
+        pyodide.setInterruptBuffer(interruptBuffer);
         // await window.pyodide.loadPackage("micropip");
         // const micropip = window.pyodide.runPython("import micropip; micropip");
         // await micropip.install('friendly_traceback');
         runInitialCode();
+        consoleElement.enable();
     }
     function runInitialCode() {
+        window.log_error_to_console = function(err) {
+            let formattedError = formatError(String(err));
+            outputToConsole(formattedError, true);
+            resetWindow();
+        }
         let code = [
             importCode,
-            enableOutputCode,
+            setInput,
+            setInterrupt,
             preBuiltCode.placeholderCode,
             preBuiltCode.wrapperCode,
             preBuiltCode.startCode,
@@ -66,23 +77,26 @@ function GraphicPyodide() {
     function setDefaultNamespace() {
         let globalsMap = pyodide.globals.get("default_ns").toJs();
         defaultNamespace = Array.from(globalsMap.keys());
+        console.log(defaultNamespace);
     }
     this.getGlobals = function() {
         return defaultNamespace;
     }
 
-    this.runCode = function(userCode) {
-        // let trialPassed = runTrial(userCode);
+    this.runCode = function(code) {
+        // let trialPassed = runTrial();
         // if (trialPassed) {
-            runUserCode(userCode);
+            userCode = code;
+            let errorOccurred = runUserCode();
+            return errorOccurred;
         // }
     }
 
-    function runTrial(userCode) {
+    function runTrial() {
         // Run the user's code for 30 frames and see if an error occurs
         // Maybe wait 30 frames before running the tests instead
+        consoleElement.disable();
         let code = [
-            disableOutputCode,
             preBuiltCode.clearNamespaceCode,
             preBuiltCode.placeholderCode,
             userCode,
@@ -95,16 +109,17 @@ function GraphicPyodide() {
             pyodide.runPython(code);
             pyodide.runPython('noLoop()\nredraw(30)');
             return true;
-        } catch(e) {
-            let formattedError = formatError(String(e), userCode);
+        } catch(error) {
+            let formattedError = formatError(String(error), userCode);
             outputToConsole(formattedError, true);
             return false;
         }
     }
 
-    function runUserCode(userCode) {
+    function runUserCode() {
+        interruptBuffer[0] = 0;
+        resetWindow();
         let code = [
-            enableOutputCode,
             preBuiltCode.clearNamespaceCode,
             preBuiltCode.placeholderCode,
             userCode,
@@ -112,16 +127,17 @@ function GraphicPyodide() {
             preBuiltCode.wrapperCode,
             preBuiltCode.startCode,
         ].join('\n');
-        resetWindow();
         try {
             pyodide.runPython(code);
-        } catch(e) {
-            let formattedError = formatError(String(e), userCode);
+            return false;
+        } catch(error) {
+            let formattedError = formatError(String(error.message));
             outputToConsole(formattedError, true);
+            return true;
         }
     }
 
-    function formatError(traceback, userCode) {
+    function formatError(traceback) {
         console.log(traceback);
         const pattern = /File "<exec>".*/s;
         const match = traceback.match(pattern)[0];
@@ -131,18 +147,18 @@ function GraphicPyodide() {
         let errorLine = tracebackLines.pop();
 
         const userCodeLines = userCode.split("\n");
-        const userCodeOffset = 50;
+        const userCodeOffset = 43;
 
         let output = "*** Traceback ***\n";
         let linePattern = /line (\d+)/;
         for (let i = 0; i < tracebackLines.length; i ++) {
             let tracebackLine = tracebackLines[i];
-            console.log("new line");
-            console.log(tracebackLine);
             if (linePattern.test(tracebackLine)) {
                 let lineNumber = parseInt(tracebackLine.match(linePattern)[1], 10) - userCodeOffset;
-                output += "line "+lineNumber+":\n";
-                output += "\t"+userCodeLines[lineNumber-1].trim()+"\n";
+                if (lineNumber >= 1 && lineNumber <= userCodeLines.length) {
+                    output += "line "+lineNumber+":\n";
+                    output += "\t"+userCodeLines[lineNumber-1].trim()+"\n";
+                }
             }
         }
         output += errorLine+"\n";
@@ -150,12 +166,10 @@ function GraphicPyodide() {
     }
 
     function outputToConsole(text, errorOccurred) {
-        let outputBox = document.getElementById('output')
         if (errorOccurred) {
-            let colouredText = `<span style="color: red;">${text}</span>`;
-            outputBox.value += text;
+            consoleElement.addToConsole(text);
         } else {
-            outputBox.value += text;
+            consoleElement.addToConsole(text);
         }
     }
 
@@ -163,9 +177,11 @@ function GraphicPyodide() {
         if (window.instance) {
             window.instance.remove();
         }
-        if (window.instance) {
-            window.instance.remove();
-        }
+    }
+
+    this.stopExecution = function() {
+        interruptBuffer[0] = 2;
+        console.log('execution stopped!');
     }
 
     this.runTests = function(codeToCheck, consoleOutput, jsonFile) {

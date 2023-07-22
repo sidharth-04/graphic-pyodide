@@ -2,6 +2,7 @@ import GraphicPyodide from "./pyodideCore/graphicPyodide.js";
 
 let editor;
 let graphicPyodide;
+let consoleElement;
 
 // Standard default code
 const defaultCode = 
@@ -23,16 +24,10 @@ async function setup() {
   editor.setTheme("ace/theme/clouds");
   editor.session.setMode("ace/mode/python");
 
-  // Load pyodide
-  const config = {
-    indexURL : "https://cdn.jsdelivr.net/pyodide/v0.18.1/full/",
-    fullStdLib: false
-  }
-  window.pyodide = await loadPyodide(config);
-
   // Load GraphicPyodide object
-  graphicPyodide = new GraphicPyodide(window.pyodide);
-  graphicPyodide.setup();
+  consoleElement = new Console("output")
+  graphicPyodide = new GraphicPyodide(consoleElement);
+  await graphicPyodide.setup();
 
   // Set initial code in editor
   setToDefault();
@@ -40,10 +35,19 @@ async function setup() {
   const executeBtn = document.getElementById("executeBtn");
   executeBtn.addEventListener("click", () => {
     document.getElementById("sketch-holder").innerHTML = "";
-    document.getElementById('output').value = "";
+    consoleElement.clear();
     let userCode = editor.getValue();
-    graphicPyodide.runCode(userCode);
-    runTests(userCode, "3\n4\n5");
+    let errorOccurred = graphicPyodide.runCode(userCode);
+    if (!errorOccurred) {
+      runTests(userCode, consoleElement.fetchOutput());
+    }
+  });
+
+  const stopBtn = document.getElementById("stopBtn");
+  stopBtn.addEventListener("click", () => {
+    graphicPyodide.stopExecution();
+    // document.getElementById("sketch-holder").innerHTML = "";
+    // consoleElement.clear();
   });
 
   // Loading a graphic game, comment out if not needed
@@ -80,29 +84,36 @@ function runTests(codeToCheck, consoleOutput) {
         "info": {
             "string": "print\\s*\\(\\s*.*\\)"
         }
-    },
-    {
-      "name": "hello world in output",
-      "type": "output",
-      "feedback": "Check if you used the print function to correctly print a msg.",
-      "info": {
-          "output": "3\n4\n5"
-      }
-    },
-    {
-      "name": "sum 5 function test",
-      "type": "function",
-      "feedback": "Check the sum function",
-      "info": {
-          "function": "sum5",
-          "cases": [
-            {"args": [12], "expected_return_value": 17},
-            {"args": [1], "expected_return_value": 6},
-            {"args": [10], "expected_return_value": 15}
-          ]
-      }
     }
   ]};
   let testResults = graphicPyodide.runTests(codeToCheck, consoleOutput, jsonFile);
   console.log(testResults);
+}
+
+function Console(outputElementID) {
+  let outputBox = document.getElementById(outputElementID);
+  let enabled = false;
+
+  this.enable = function() {
+    enabled = true;
+  }
+  this.disable = function() {
+    enabled = false;
+  }
+
+  this.addToConsole = function(msg) {
+    if (!enabled) {
+      return;
+    }
+    outputBox.value += msg+"\n";
+  }
+
+  this.fetchOutput = function() {
+    return outputBox.value;
+  }
+
+  this.clear = function() {
+    console.log("cleared");
+    outputBox.value = "";
+  }
 }
