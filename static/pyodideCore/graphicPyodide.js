@@ -2,22 +2,25 @@ import {preBuiltCode} from "./boilerplate.js";
 
 // Put these code snippets as part of the preBuiltCode
 const importCode = `
-import sys, code, traceback
-from js import p5, window, document, log_error_to_console
-print(sys.version)
+import traceback
+from js import p5, window, log_error_to_console, initiate_worker_timer, cancel_worker_timer
 `
-const setInput = `
+const interruptExecutionMessage = "The program was interrupted";
+const timeoutMessage = "The program took too long to run";
+const defineExceptions = `
+import signal
+
 def input(*args, **kwargs):
     raise Exception('The input function is disabled in graphic mode')
-`;
-const interruptExecutionMessage = "The program was interrupted";
-const setInterrupt = `
-import signal
 
 def custom_interrupt_handler(signum, frame):
     raise Exception('${interruptExecutionMessage}')
 
+def custom_timeout_handler(signum, frame):
+    raise Exception('${timeoutMessage}')
+
 signal.signal(signal.SIGINT, custom_interrupt_handler)
+signal.signal(3, custom_timeout_handler)
 `
 const defineNamespaceCode = `
 # Define the default namespace
@@ -30,8 +33,10 @@ function GraphicPyodide(consoleObj) {
     let userCode = "";
     let defaultNamespace = {};
     let consoleElement = consoleObj;
-    let interruptBuffer = new Uint8Array(new ArrayBuffer(1));
-    let onErrorCallback = () => {};
+    let interruptBuffer = new Uint8Array(new SharedArrayBuffer(1));
+    let programCompletedCallback = () => {};
+
+    const timerWorker = new Worker(new URL('timerWorker.js', import.meta.url));
 
     const gameMapper = {
         "clicker": [preBuiltCode.graphicClickerCode, 'change_colour(colour)'],
@@ -51,23 +56,36 @@ function GraphicPyodide(consoleObj) {
         pyodide = await loadPyodide(config);
         await pyodide;
         pyodide.setInterruptBuffer(interruptBuffer);
-        // await window.pyodide.loadPackage("micropip");
-        // const micropip = window.pyodide.runPython("import micropip; micropip");
-        // await micropip.install('friendly_traceback');
+        timerWorker.postMessage({cmd: "SET_BUFFER", interruptBuffer});
+        defineUtilityFunctions();
         runInitialCode();
         consoleElement.enable();
     }
-    function runInitialCode() {
+
+    function defineUtilityFunctions() {
         window.log_error_to_console = function(error) {
             handleError(error);
         }
+        window.initiate_worker_timer = function(timeLimit=3000) {
+            timerWorker.postMessage({cmd: "INITIATE_TIMER", timeLimit});
+        }
+        window.cancel_worker_timer = function() {
+            timerWorker.postMessage({cmd: "CANCEL_TIMER"});
+        }
+    }
+    function initiate_initialization_timer(timeLimit=3000) {
+        timerWorker.postMessage({cmd: "INITIATE_INITIALIZATION_TIMER", timeLimit});
+    }
+    function cancel_initialization_timer() {
+        timerWorker.postMessage({cmd: "CANCEL_INITIALIZATION_TIMER"});
+    }
+
+    function runInitialCode() {
         let code = [
             importCode,
-            setInput,
-            setInterrupt,
+            defineExceptions,
             preBuiltCode.placeholderCode,
             preBuiltCode.wrapperCode,
-            preBuiltCode.startCode,
             defineNamespaceCode
         ].join('\n');
         pyodide.runPython(code);
@@ -77,21 +95,19 @@ function GraphicPyodide(consoleObj) {
         let globalsMap = pyodide.globals.get("default_ns").toJs();
         defaultNamespace = Array.from(globalsMap.keys());
     }
-    this.getGlobals = function() {
-        return defaultNamespace;
-    }
 
-    this.setOnErrorCallback = function(callback) {
-        onErrorCallback = callback;
+    this.setProgramCompletedCallback = function(callback) {
+        programCompletedCallback = callback;
     }
 
     this.runCode = function(code) {
         userCode = code;
-        let errorOccurred = runUserCode();
-        return errorOccurred;
+        runUserCode();
+        console.log('***ran code***');
     }
 
     function runUserCode() {
+        // Disable run while program is running
         interruptBuffer[0] = 0;
         resetWindow();
         let code = [
@@ -103,32 +119,32 @@ function GraphicPyodide(consoleObj) {
             preBuiltCode.startCode,
         ].join('\n');
         try {
+            initiate_initialization_timer();
             pyodide.runPython(code);
-            return false;
+            cancel_initialization_timer();
         } catch(error) {
-            handleError(error)
-            return true;
+            cancel_initialization_timer();
+            handleError(error);
         }
     }
 
     function handleError(err) {
+        programCompletedCallback(true);
         let formattedError = formatError(String(err));
         outputToConsole(formattedError, true);
-        onErrorCallback();
         resetWindow();
     }
 
     function formatError(traceback) {
-        console.log(traceback);
         const pattern = /File "<exec>".*/s;
         const match = traceback.match(pattern)[0];
 
         const tracebackLines = match.split("\n");
         tracebackLines.pop();
         let errorLine = tracebackLines.pop();
-        let interruptExecutionError = false;
-        if (errorLine.startsWith('Exception: '+interruptExecutionMessage)) {
-            interruptExecutionError = true;
+        let skipTraceback = false;
+        if (errorLine.startsWith('Exception: '+interruptExecutionMessage) || errorLine.startsWith('Exception: '+timeoutMessage)) {
+            skipTraceback = true;
         }
 
         const userCodeLines = userCode.split("\n");
@@ -137,7 +153,7 @@ function GraphicPyodide(consoleObj) {
         let output = "*** Traceback ***\n";
         let linePattern = /line (\d+)/;
         for (let i = 0; i < tracebackLines.length; i ++) {
-            if (interruptExecutionError) break;
+            if (skipTraceback) break;
             let tracebackLine = tracebackLines[i];
             if (linePattern.test(tracebackLine)) {
                 let lineNumber = parseInt(tracebackLine.match(linePattern)[1], 10) - userCodeOffset;
@@ -168,7 +184,6 @@ function GraphicPyodide(consoleObj) {
 
     this.stopExecution = function() {
         interruptBuffer[0] = 2;
-        console.log('execution stopped!');
     }
 
     this.runTests = function(codeToCheck, consoleOutput, jsonFile) {

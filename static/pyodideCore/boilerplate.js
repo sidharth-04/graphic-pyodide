@@ -1444,9 +1444,12 @@ def global_p5_injection(p5_sketch):
             global _P5_INSTANCE
             _P5_INSTANCE = p5_sketch
             try:
+                initiate_worker_timer()
                 temp_output = pre_draw(_P5_INSTANCE, f, *args, **kwargs)
+                cancel_worker_timer()
                 return temp_output
             except:
+                cancel_worker_timer()
                 traceback_str = traceback.format_exc()
                 log_error_to_console(traceback_str)
         

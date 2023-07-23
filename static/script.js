@@ -34,9 +34,19 @@ async function setup() {
   consoleElement = new Console("output")
   graphicPyodide = new GraphicPyodide(consoleElement);
   await graphicPyodide.setup();
-  graphicPyodide.setOnErrorCallback(() => {
-    stopBtn.disabled = true;
+  graphicPyodide.setProgramCompletedCallback((errorOccurred) => {
+    programCompletedRunning();
+      // runTests(userCode, consoleElement.fetchOutput());
   });
+
+  function programRunning() {
+    stopBtn.disabled = false;
+    executeBtn.disabled = true;
+  }
+  function programCompletedRunning() {
+    stopBtn.disabled = true;
+    executeBtn.disabled = false;
+  }
 
   $("#spinner").hide();
   $("#control-panel").show();
@@ -46,20 +56,16 @@ async function setup() {
   stopBtn.disabled = true;
 
   executeBtn.addEventListener("click", () => {
-    stopBtn.disabled = false;
+    programRunning();
     consoleElement.clear();
     let userCode = editor.getValue();
     // Find a way to check for runtime errors, only syntax errors are recorded now
     // Maybe run for 30 frames and see if an error shows up
-    let errorOccurred = graphicPyodide.runCode(userCode);
-    if (!errorOccurred) {
-      runTests(userCode, consoleElement.fetchOutput());
-    }
+    graphicPyodide.runCode(userCode);
   });
 
   stopBtn.addEventListener("click", () => {
     graphicPyodide.stopExecution();
-    stopBtn.disabled = true;
   });
 
   // Loading a graphic game, comment out if not needed
@@ -118,7 +124,6 @@ function Console(outputElementID) {
       return;
     }
     outputBox.value += msg+"\n";
-    // console.log('logged');
   }
 
   this.fetchOutput = function() {
@@ -126,7 +131,6 @@ function Console(outputElementID) {
   }
 
   this.clear = function() {
-    console.log("cleared");
     outputBox.value = "";
   }
 }
