@@ -14,7 +14,12 @@ def input(*args, **kwargs):
     raise Exception('The input function is disabled in graphic mode')
 
 def custom_interrupt_handler(signum, frame):
-    raise Exception('${interruptExecutionMessage}')
+    try:
+        raise Exception('${interruptExecutionMessage}')
+    except:
+        cancel_worker_timer()
+        traceback_str = traceback.format_exc()
+        log_error_to_console(traceback_str)
 
 def custom_timeout_handler(signum, frame):
     raise Exception('${timeoutMessage}')
@@ -35,6 +40,7 @@ function GraphicPyodide(consoleObj) {
     let consoleElement = consoleObj;
     let interruptBuffer = new Uint8Array(new SharedArrayBuffer(1));
     let programCompletedCallback = () => {};
+    let checkForInterruptInterval = null;
 
     const timerWorker = new Worker(new URL('timerWorker.js', import.meta.url));
 
@@ -62,6 +68,7 @@ function GraphicPyodide(consoleObj) {
         consoleElement.enable();
     }
 
+    // Interrupt and Timer Functionality
     function defineUtilityFunctions() {
         window.log_error_to_console = function(error) {
             handleError(error);
@@ -79,15 +86,23 @@ function GraphicPyodide(consoleObj) {
     function cancel_initialization_timer() {
         timerWorker.postMessage({cmd: "CANCEL_INITIALIZATION_TIMER"});
     }
+    function setCheckForInterruptInterval() {
+        checkForInterruptInterval = setInterval(() => {
+            pyodide.checkInterrupt();
+        }, 300);
+    }
+    function clearCheckForInterruptInterval() {
+        clearInterval(checkForInterruptInterval);
+    }
 
     function runInitialCode() {
-        let code = [
+        let code = buildCode(
             importCode,
             defineExceptions,
             preBuiltCode.placeholderCode,
             preBuiltCode.wrapperCode,
             defineNamespaceCode
-        ].join('\n');
+        );
         pyodide.runPython(code);
         setDefaultNamespace();
     }
@@ -110,17 +125,21 @@ function GraphicPyodide(consoleObj) {
         // Disable run while program is running
         interruptBuffer[0] = 0;
         resetWindow();
-        let code = [
+        let initializeCode = buildCode(
             preBuiltCode.clearNamespaceCode,
             preBuiltCode.placeholderCode,
+        )
+        let mainCode = buildCode(
             userCode,
             gameCode,
             preBuiltCode.wrapperCode,
-            preBuiltCode.startCode,
-        ].join('\n');
+            preBuiltCode.startCode
+        )
         try {
+            pyodide.runPython(initializeCode);
             initiate_initialization_timer();
-            pyodide.runPython(code);
+            setCheckForInterruptInterval();
+            pyodide.runPython(mainCode);
             cancel_initialization_timer();
         } catch(error) {
             cancel_initialization_timer();
@@ -129,6 +148,7 @@ function GraphicPyodide(consoleObj) {
     }
 
     function handleError(err) {
+        clearCheckForInterruptInterval();
         programCompletedCallback(true);
         let formattedError = formatError(String(err));
         outputToConsole(formattedError, true);
@@ -136,6 +156,7 @@ function GraphicPyodide(consoleObj) {
     }
 
     function formatError(traceback) {
+        console.log(traceback);
         const pattern = /File "<exec>".*/s;
         const match = traceback.match(pattern)[0];
 
@@ -148,7 +169,6 @@ function GraphicPyodide(consoleObj) {
         }
 
         const userCodeLines = userCode.split("\n");
-        const userCodeOffset = 43;
 
         let output = "*** Traceback ***\n";
         let linePattern = /line (\d+)/;
@@ -156,7 +176,7 @@ function GraphicPyodide(consoleObj) {
             if (skipTraceback) break;
             let tracebackLine = tracebackLines[i];
             if (linePattern.test(tracebackLine)) {
-                let lineNumber = parseInt(tracebackLine.match(linePattern)[1], 10) - userCodeOffset;
+                let lineNumber = parseInt(tracebackLine.match(linePattern)[1], 10);
                 if (lineNumber >= 1 && lineNumber <= userCodeLines.length) {
                     output += "line "+lineNumber+":\n";
                     output += "\t"+userCodeLines[lineNumber-1].trim()+"\n";
@@ -180,6 +200,14 @@ function GraphicPyodide(consoleObj) {
             window.instance.remove();
         }
         document.getElementById("sketch-holder").innerHTML = "";
+    }
+
+    function buildCode() {
+        let result = []
+        for (let i = 0; i < arguments.length; i ++) {
+            result.push(arguments[i]);
+        }
+        return result.join('\n');
     }
 
     this.stopExecution = function() {
