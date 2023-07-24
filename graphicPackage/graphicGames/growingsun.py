@@ -1,5 +1,3 @@
-print("<< Growing Sun game loaded >>")
-
 curr_size = 80
 
 def setup():

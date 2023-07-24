@@ -1,5 +1,3 @@
-print("<< Rocking Boat game loaded >>")
-
 noise_y = 0
 noise_speed = 0.03
 noise_height = 100

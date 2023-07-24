@@ -1,5 +1,3 @@
-print("<< Clicker game loaded >>")
-
 circle_colour = "blue"
 
 def setup():

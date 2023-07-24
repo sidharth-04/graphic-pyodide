@@ -44,23 +44,28 @@
 	order: 2;
 	width: 100%;
 	height: calc(100vh - 18vh - 410px);
+	font-family: monospace;
+	font-size: 13px;
 	-moz-tab-size : 4;
 	-o-tab-size : 4;
 	   tab-size : 4;
 }
 #output {
 	display: flex;
-	font-family: monospace;
 	overflow: scroll;
 	border: 1px solid lightgray;
 	border-radius: 6px;
 	padding: 5px;
-	resize:both;
-	font-size: 12px;
+	padding-left: 14px;
+	padding-right: 14px;
+	resize: both;
 	height: 80%;
 }
 #console-input {
 	order: 2;
 	width: 100%;
 	height: 20%;
+}
+#console-input-box {
+	font-size: 13px;
 }

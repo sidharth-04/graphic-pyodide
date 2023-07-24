@@ -1,8 +1,12 @@
 import GraphicPyodide from "./pyodideCore/graphicPyodide.js";
+import Console from "./console.js"
 
 let editor;
-let graphicPyodide;
-let consoleElement;
+let consoleElement = new Console("output");
+let graphicPyodide = new GraphicPyodide(consoleElement);
+let programCurrentlyRunning = false;
+let testingTimeout = null;
+let userCode;
 
 // Standard default code
 const defaultCode = 
@@ -18,6 +22,11 @@ def draw():
 `;
 let initialUserCode = defaultCode;
 
+const executeBtn = document.getElementById("executeBtn");
+const stopBtn = document.getElementById("stopBtn");
+const sendInputBtn = document.getElementById("send-input-button");
+const inputBox = document.getElementById("console-input-box");
+
 async function setup() {
   $("#control-panel").hide();
   $("#spinner").show();
@@ -31,54 +40,37 @@ async function setup() {
   setToDefault();
 
   // Load GraphicPyodide object
-  consoleElement = new Console("output")
-  graphicPyodide = new GraphicPyodide(consoleElement);
   await graphicPyodide.setup();
-  graphicPyodide.setProgramCompletedCallback((errorOccurred) => {
+  graphicPyodide.setOnErrorCallback(() => {
     programCompletedRunning();
-      // runTests(userCode, consoleElement.fetchOutput());
   });
-
-  function programRunning() {
-    stopBtn.disabled = false;
-    executeBtn.disabled = true;
-    sendInputBtn.disabled = true;
-  }
-  function programCompletedRunning() {
-    stopBtn.disabled = true;
-    executeBtn.disabled = false;
-    sendInputBtn.disabled = false;
-  }
 
   $("#spinner").hide();
   $("#control-panel").show();
-
-  const executeBtn = document.getElementById("executeBtn");
-  const stopBtn = document.getElementById("stopBtn");
-  const sendInputBtn = document.getElementById("send-input-button");
   stopBtn.disabled = true;
 
   executeBtn.addEventListener("click", () => {
+    if (programCurrentlyRunning) return;
     programRunning();
     consoleElement.clear();
-    let userCode = editor.getValue();
-    // Find a way to check for runtime errors, only syntax errors are recorded now
-    // Maybe run for 30 frames and see if an error shows up
+    userCode = editor.getValue();
     graphicPyodide.runCode(userCode);
   });
 
   stopBtn.addEventListener("click", () => {
+    if (!programCurrentlyRunning) return;
     graphicPyodide.stopExecution();
   });
 
+  inputBox.addEventListener("keydown", (event) => {
+    if (event.key === 'Enter') {
+      handleInput(inputBox);
+    }
+  });
   sendInputBtn.addEventListener("click", () => {
-    let inputText = $('#console-input-box').val();
-    $('#console-input-box').val('');
-    consoleElement.addCommand(inputText);
-    graphicPyodide.evaluateConsoleCode(inputText);
+    handleInput(inputBox);
   });
 
-  // Loading a graphic game, comment out if not needed
   const graphicGameSelect = document.getElementById("chooseGameType");
   graphicGameSelect.addEventListener("change", () => {
     let graphicGameText = graphicGameSelect.value;
@@ -89,7 +81,14 @@ async function setup() {
     }
   });
 }
-setup();
+
+await setup();
+
+function setToDefault() {
+  initialUserCode = defaultCode;
+  editor.setValue(initialUserCode);
+  if (graphicPyodide) graphicPyodide.setDefaultGameType();
+}
 
 function loadGame(gameType) {
   graphicPyodide.setGameType(gameType);
@@ -97,10 +96,33 @@ function loadGame(gameType) {
   initialUserCode = 'def '+functionSignature+':\n\t# Write your code below this line\n\tpass';
   editor.setValue(initialUserCode);
 }
-function setToDefault() {
-  initialUserCode = defaultCode;
-  editor.setValue(initialUserCode);
-  if (graphicPyodide) graphicPyodide.setDefault();
+function programRunning() {
+  testingTimeout = setTimeout(() => {
+    runTests(userCode, consoleElement.fetchOutput());
+  }, 3000)
+  stopBtn.disabled = false;
+  executeBtn.disabled = true;
+  sendInputBtn.disabled = true;
+  inputBox.disabled = true;
+  programCurrentlyRunning = true;
+}
+function programCompletedRunning() {
+  clearTimeout(testingTimeout);
+  testingTimeout = null;
+  stopBtn.disabled = true;
+  executeBtn.disabled = false;
+  sendInputBtn.disabled = false;
+  inputBox.disabled = false;
+  programCurrentlyRunning = false;
+}
+
+function handleInput(inputElement) {
+  if (programCurrentlyRunning) return;
+  let command = inputElement.value;
+  inputElement.value = "";
+  if (command == "") return;
+  consoleElement.addCommand(command);
+  graphicPyodide.evaluateConsoleCode(command);
 }
 
 function runTests(codeToCheck, consoleOutput) {
@@ -112,39 +134,21 @@ function runTests(codeToCheck, consoleOutput) {
         "info": {
             "string": "print\\s*\\(\\s*.*\\)"
         }
+    },
+    {
+      "name": "sum 5 function test",
+      "type": "function",
+      "feedback": "Check the sum function",
+      "info": {
+          "function": "sum5",
+          "cases": [
+            {"args": [12], "expected_return_value": 17},
+            {"args": [1], "expected_return_value": 6},
+            {"args": [10], "expected_return_value": 15}
+          ]
+      }
     }
   ]};
   let testResults = graphicPyodide.runTests(codeToCheck, consoleOutput, jsonFile);
   console.log(testResults);
-}
-
-function Console(outputElementID) {
-  let outputBox = document.getElementById(outputElementID);
-  let enabled = false;
-
-  this.enable = function() {
-    enabled = true;
-  }
-  this.disable = function() {
-    enabled = false;
-  }
-
-  this.addToConsole = function(msg) {
-    if (!enabled) {
-      return;
-    }
-    outputBox.value += msg+"\n";
-  }
-
-  this.addCommand = function(cmd) {
-    outputBox.value += "=> "+cmd+"\n";
-  }
-
-  this.fetchOutput = function() {
-    return outputBox.value;
-  }
-
-  this.clear = function() {
-    outputBox.value = "";
-  }
 }

@@ -1,5 +1,3 @@
-print("<< Button game loaded >>")
-
 colours = [color(52, 35, 166), color(0, 148, 198), color(46, 23, 96), color(80, 133, 139), color(91, 200, 175), color(255, 255, 255)]
 rect_colour = -1
 

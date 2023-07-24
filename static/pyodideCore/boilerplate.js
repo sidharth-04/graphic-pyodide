@@ -1,3 +1,17 @@
+const importCode = `
+
+import traceback
+from js import p5, window, log_error_to_console, initiate_worker_timer, cancel_worker_timer
+
+`;
+
+const defineNamespaceCode = `
+
+# Define the default namespace
+default_ns = globals().copy()
+
+`;
+
 const wrapperCode = `
 
 class PythonFunctions: pass
@@ -1617,9 +1631,8 @@ class Tester:
         return test_to_run(test_case.info)
 
     def handle_test_case_error(self, error):
-        self.output = [{"ErrorEncountered": error}]
-        print(error)
-
+        self.output = [{"ErrorEncountered": str(error)}]
+        
     def add_result(self, test_case, result):
         if result == "success":
             self.add_to_output(test_case.name, "success")
@@ -1677,8 +1690,6 @@ test_student_code()
 `;
 
 const graphicRockboatCode = `
-print("<< Rocking Boat game loaded >>")
-
 noise_y = 0
 noise_speed = 0.03
 noise_height = 100
@@ -1738,8 +1749,6 @@ def draw():
 `;
 
 const graphicBouncerCode = `
-print("<< Bouncer game loaded >>")
-
 circleX = 50
 vel = 2
 
@@ -1762,8 +1771,6 @@ def draw():
 `;
 
 const graphicClickerCode = `
-print("<< Clicker game loaded >>")
-
 circle_colour = "blue"
 
 def setup():
@@ -1782,8 +1789,6 @@ def mousePressed():
 `;
 
 const graphicSpeedballCode = `
-print("<< Speed Ball game loaded >>")
-
 speed = 1
 posVec = createVector(200, 200)
 dirVec = PVector().random2D()
@@ -1815,8 +1820,6 @@ def mousePressed():
 `;
 
 const graphicGrowingsunCode = `
-print("<< Growing Sun game loaded >>")
-
 curr_size = 80
 
 def setup():
@@ -1838,8 +1841,6 @@ def mousePressed():
 `;
 
 const graphicButtonCode = `
-print("<< Button game loaded >>")
-
 colours = [color(52, 35, 166), color(0, 148, 198), color(46, 23, 96), color(80, 133, 139), color(91, 200, 175), color(255, 255, 255)]
 rect_colour = -1
 
@@ -1866,7 +1867,9 @@ def switch():
         rect_colour = int(random(len(colours)))
 `;
 
-export const preBuiltCode = {
+const preBuiltCode = {
+	"importCode": importCode,
+	"defineNamespaceCode": defineNamespaceCode,
 	"wrapperCode": wrapperCode,
 	"placeholderCode": placeholderCode,
 	"startCode": startCode,
@@ -1879,4 +1882,6 @@ export const preBuiltCode = {
 	"graphicSpeedballCode": graphicSpeedballCode,
 	"graphicGrowingsunCode": graphicGrowingsunCode,
 	"graphicButtonCode": graphicButtonCode,
-}
+};
+
+export default preBuiltCode;

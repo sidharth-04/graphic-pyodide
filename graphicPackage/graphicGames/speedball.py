@@ -1,5 +1,3 @@
-print("<< Speed Ball game loaded >>")
-
 speed = 1
 posVec = createVector(200, 200)
 dirVec = PVector().random2D()

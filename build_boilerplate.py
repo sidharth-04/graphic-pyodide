@@ -1,5 +1,12 @@
 # This script builds the boilerplate.js file
-
+import_code = '''
+import traceback
+from js import p5, window, log_error_to_console, initiate_worker_timer, cancel_worker_timer
+'''
+define_namespace_code = '''
+# Define the default namespace
+default_ns = globals().copy()
+'''
 wrapper_code = '''
 class PythonFunctions: pass
 
@@ -1568,6 +1575,8 @@ import os
 
 def build_code_dict():
     code_dict = {
+        "importCode": import_code,
+        "defineNamespaceCode": define_namespace_code,
         "wrapperCode": wrapper_code,
         "placeholderCode": placeholder_code,
         "startCode": start_code,
@@ -1622,10 +1631,11 @@ def build_definitions(code_dict):
 
 def build_exporter(code_dict):
     result = ''
-    result += 'export const preBuiltCode = {\n'
+    result += 'const preBuiltCode = {\n'
     for const_name in list(code_dict.keys()):
         result += f'\t"{const_name}": {const_name},\n'
-    result += '}'
+    result += '};\n\n'
+    result += 'export default preBuiltCode;'
     return result
 
 output = ''

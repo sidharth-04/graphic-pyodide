@@ -1,5 +1,3 @@
-print("<< Bouncer game loaded >>")
-
 circleX = 50
 vel = 2
 
