@@ -121,6 +121,20 @@ function GraphicPyodide(consoleObj) {
         console.log('***ran code***');
     }
 
+    this.evaluateConsoleCode = function(codeLine) {
+        try {
+            initiate_initialization_timer();
+            let programOutput = pyodide.runPython(codeLine);
+            cancel_initialization_timer();
+            outputToConsole(programOutput, false);
+        } catch(error) {
+            console.log('caught in console')
+            cancel_initialization_timer();
+            let formattedError = formatError(String(error), true);
+            outputToConsole(formattedError, true);
+        }
+    }
+
     function runUserCode() {
         // Disable run while program is running
         interruptBuffer[0] = 0;
@@ -150,12 +164,12 @@ function GraphicPyodide(consoleObj) {
     function handleError(err) {
         clearCheckForInterruptInterval();
         programCompletedCallback(true);
-        let formattedError = formatError(String(err));
+        let formattedError = formatError(String(err), false);
         outputToConsole(formattedError, true);
         resetWindow();
     }
 
-    function formatError(traceback) {
+    function formatError(traceback, consoleMode) {
         console.log(traceback);
         const pattern = /File "<exec>".*/s;
         const match = traceback.match(pattern)[0];
@@ -173,7 +187,7 @@ function GraphicPyodide(consoleObj) {
         let output = "*** Traceback ***\n";
         let linePattern = /line (\d+)/;
         for (let i = 0; i < tracebackLines.length; i ++) {
-            if (skipTraceback) break;
+            if (skipTraceback || consoleMode) break;
             let tracebackLine = tracebackLines[i];
             if (linePattern.test(tracebackLine)) {
                 let lineNumber = parseInt(tracebackLine.match(linePattern)[1], 10);
@@ -183,7 +197,7 @@ function GraphicPyodide(consoleObj) {
                 }
             }
         }
-        output += errorLine+"\n";
+        output += errorLine;
         return output
     }
 

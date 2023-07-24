@@ -45,7 +45,15 @@
     <div id="editor"></div>
     <div id="runDiv">
       <div id="sketch-holder"></div>
-      <textarea id="output" style="width: 100%;" rows="10" disabled></textarea>
+      <div id="console">
+        <textarea id="output" style="width: 100%;" rows="10" disabled></textarea>
+        <div class="input-group mb-3" id="console-input">
+          <div class="input-group-prepend">
+            <button class="btn btn-outline-secondary" type="button" id="send-input-button">send</button>
+          </div>
+          <input type="text" class="form-control" placeholder="" id="console-input-box">
+        </div>
+      </div>
     </div>
 
     <!-- Custom -->

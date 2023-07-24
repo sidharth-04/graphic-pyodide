@@ -42,10 +42,12 @@ async function setup() {
   function programRunning() {
     stopBtn.disabled = false;
     executeBtn.disabled = true;
+    sendInputBtn.disabled = true;
   }
   function programCompletedRunning() {
     stopBtn.disabled = true;
     executeBtn.disabled = false;
+    sendInputBtn.disabled = false;
   }
 
   $("#spinner").hide();
@@ -53,6 +55,7 @@ async function setup() {
 
   const executeBtn = document.getElementById("executeBtn");
   const stopBtn = document.getElementById("stopBtn");
+  const sendInputBtn = document.getElementById("send-input-button");
   stopBtn.disabled = true;
 
   executeBtn.addEventListener("click", () => {
@@ -66,6 +69,13 @@ async function setup() {
 
   stopBtn.addEventListener("click", () => {
     graphicPyodide.stopExecution();
+  });
+
+  sendInputBtn.addEventListener("click", () => {
+    let inputText = $('#console-input-box').val();
+    $('#console-input-box').val('');
+    consoleElement.addCommand(inputText);
+    graphicPyodide.evaluateConsoleCode(inputText);
   });
 
   // Loading a graphic game, comment out if not needed
@@ -124,6 +134,10 @@ function Console(outputElementID) {
       return;
     }
     outputBox.value += msg+"\n";
+  }
+
+  this.addCommand = function(cmd) {
+    outputBox.value += "=> "+cmd+"\n";
   }
 
   this.fetchOutput = function() {
