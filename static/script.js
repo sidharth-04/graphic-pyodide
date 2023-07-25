@@ -2,7 +2,7 @@ import GraphicPyodide from "./pyodideCore/graphicPyodide.js";
 import Console from "./console.js"
 
 let editor;
-let consoleElement = new Console("output");
+let consoleElement = new Console("console");
 let graphicPyodide = new GraphicPyodide(consoleElement);
 let programCurrentlyRunning = false;
 let testingTimeout = null;

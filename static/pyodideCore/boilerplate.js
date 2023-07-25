@@ -1631,7 +1631,10 @@ class Tester:
         return test_to_run(test_case.info)
 
     def handle_test_case_error(self, error):
-        self.output = [{"ErrorEncountered": str(error)}]
+        error_type = type(error).__name__
+        error_message = error.args[0]
+        msg = f"{error_type}: {error_message}"
+        self.output = [{"ErrorEncountered": msg}]
         
     def add_result(self, test_case, result):
         if result == "success":

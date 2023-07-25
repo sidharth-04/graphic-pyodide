@@ -50,7 +50,7 @@ function GraphicPyodide(consoleObj) {
         timerHandler.initialize(interruptBuffer);
         const config = {
             stdout: (output) => {
-                outputToConsole(output);
+                outputToConsole(output, false);
             }
         }
         pyodide = await loadPyodide(config);
@@ -83,11 +83,11 @@ function GraphicPyodide(consoleObj) {
             timerHandler.initiateInitializationTimer();
             let programOutput = pyodide.runPython(codeLine);
             timerHandler.cancelInitializationTimer();
-            if (programOutput !== undefined) outputToConsole(programOutput);
+            if (programOutput !== undefined) outputToConsole(programOutput, false);
         } catch(error) {
             timerHandler.cancelInitializationTimer();
             let formattedError = formatError(String(error), true);
-            outputToConsole(formattedError);
+            outputToConsole(formattedError, true);
         }
     }
 
@@ -102,7 +102,7 @@ function GraphicPyodide(consoleObj) {
         let gameCode = "";
         if (gameType != "default") {
             gameCode = gameMapper[gameType][0]
-            outputToConsole(`<< ${gameMapper[gameType][2]} Game Loaded >>`);
+            outputToConsole(`<< ${gameMapper[gameType][2]} Game Loaded >>`, false);
         }
         let mainCode = buildCode(
             userCode,
@@ -138,7 +138,7 @@ function GraphicPyodide(consoleObj) {
         clearCheckForInterruptInterval();
         onErrorCallback();
         let formattedError = formatError(String(err), false);
-        outputToConsole(formattedError);
+        outputToConsole(formattedError, true);
     }
 
     function formatError(traceback, consoleMode) {
@@ -161,7 +161,7 @@ function GraphicPyodide(consoleObj) {
 
         const userCodeLines = userCode.split("\n");
 
-        let output = "*** Traceback ***\n";
+        let output = "";
         let linePattern = /line (\d+)/;
         for (let i = 0; i < tracebackLines.length; i ++) {
             if (skipTraceback || consoleMode) break;
@@ -179,8 +179,8 @@ function GraphicPyodide(consoleObj) {
         return output
     }
 
-    function outputToConsole(output) {
-        consoleElement.addToConsole(output);
+    function outputToConsole(output, errorOccurred) {
+        consoleElement.addMessage(output, errorOccurred);
     }
 
     function resetWindow() {
@@ -212,8 +212,8 @@ function GraphicPyodide(consoleObj) {
         timerHandler.cancelInitializationTimer();
         consoleElement.enable();
         if (testResults[0].has("ErrorEncountered")) {
-            outputToConsole("We got the following error while testing:");
-            outputToConsole(testResults[0].get("ErrorEncountered"));
+            outputToConsole("We got the following error while testing:", false);
+            outputToConsole(testResults[0].get("ErrorEncountered"), true);
         }
         return testResults;
     }
