@@ -42,7 +42,6 @@ function GraphicPyodide(consoleObj) {
         "growingsun": [preBuiltCode.graphicGrowingsunCode, 'get_new_size(size)', 'GrowingSun'],
         "speedball": [preBuiltCode.graphicSpeedballCode, 'get_new_speed(speed)', 'SpeedBall'],
         "rockboat": [preBuiltCode.graphicRockboatCode, 'change_direction(angle)', 'RockBoat'],
-        "button": [preBuiltCode.graphicButtonCode, 'check_clicked(x, y, w, h)', 'Button'],
     }
 
     this.setup = async function() {

@@ -24,5 +24,10 @@ def draw():
 def mousePressed():
 	global speed
 	if dist(posVec.x, posVec.y, mouseX, mouseY) < ball_size/2:
-		speed = get_new_speed(speed)
-		print("You clicked me! My new speed is "+str(speed))
+		try:
+			new_speed = get_new_speed(speed)
+			if isinstance(new_speed, (int, float)):
+				speed = new_speed
+				print("You clicked me! My new speed is "+str(speed))
+		except:
+			pass

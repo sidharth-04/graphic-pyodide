@@ -34,8 +34,11 @@ def draw():
   fill('brown')
   rotate(angle)
   angle += 0.01*angle_dir
-  if change_direction(degrees(angle)):
-    angle_dir *= -1
+  try:
+    if change_direction(degrees(angle)):
+      angle_dir *= -1
+  except:
+    pass
   rect(0, 0, 150, 60)
   rect(-20, -60, 10, 100)
   fill('white')

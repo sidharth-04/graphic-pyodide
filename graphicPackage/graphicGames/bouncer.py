@@ -15,5 +15,8 @@ def draw():
     
     # Update circle's x position
     circleX += vel
-    if at_edge(circleX):
-        vel *= -1
+    try:
+        if at_edge(circleX):
+            vel *= -1
+    except:
+        pass

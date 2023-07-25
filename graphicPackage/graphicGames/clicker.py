@@ -12,4 +12,9 @@ def draw():
 def mousePressed():
     global circle_colour
     if dist(200, 200, mouseX, mouseY) < 50:
-        circle_colour = change_colour(circle_colour)
+        try:
+            new_colour = change_colour(circle_colour)
+            fill(new_colour)
+            circle_colour = new_colour
+        except:
+            pass

@@ -482,15 +482,6 @@ def splice(*args):
 def subset(*args):
     return _P5_INSTANCE.subset(*args)
 
-def float(*args):
-    return _P5_INSTANCE.float(*args)
-
-def int(*args):
-    return _P5_INSTANCE.int(*args)
-
-def str(*args):
-    return _P5_INSTANCE.str(*args)
-
 def boolean(*args):
     return _P5_INSTANCE.boolean(*args)
 
@@ -1729,8 +1720,11 @@ def draw():
   fill('brown')
   rotate(angle)
   angle += 0.01*angle_dir
-  if change_direction(degrees(angle)):
-    angle_dir *= -1
+  try:
+    if change_direction(degrees(angle)):
+      angle_dir *= -1
+  except:
+    pass
   rect(0, 0, 150, 60)
   rect(-20, -60, 10, 100)
   fill('white')
@@ -1769,8 +1763,11 @@ def draw():
     
     # Update circle's x position
     circleX += vel
-    if at_edge(circleX):
-        vel *= -1
+    try:
+        if at_edge(circleX):
+            vel *= -1
+    except:
+        pass
 `;
 
 const graphicClickerCode = `
@@ -1788,7 +1785,12 @@ def draw():
 def mousePressed():
     global circle_colour
     if dist(200, 200, mouseX, mouseY) < 50:
-        circle_colour = change_colour(circle_colour)
+        try:
+            new_colour = change_colour(circle_colour)
+            fill(new_colour)
+            circle_colour = new_colour
+        except:
+            pass
 `;
 
 const graphicSpeedballCode = `
@@ -1818,8 +1820,13 @@ def draw():
 def mousePressed():
 	global speed
 	if dist(posVec.x, posVec.y, mouseX, mouseY) < ball_size/2:
-		speed = get_new_speed(speed)
-		print("You clicked me! My new speed is "+str(speed))
+		try:
+			new_speed = get_new_speed(speed)
+			if isinstance(new_speed, (int, float)):
+				speed = new_speed
+				print("You clicked me! My new speed is "+str(speed))
+		except:
+			pass
 `;
 
 const graphicGrowingsunCode = `
@@ -1840,34 +1847,12 @@ def mousePressed():
     global curr_size
     x, y = mouseX, mouseY
     if dist(200, 300, x, y) < curr_size/2:
-        curr_size = get_new_size(curr_size)
-`;
-
-const graphicButtonCode = `
-colours = [color(52, 35, 166), color(0, 148, 198), color(46, 23, 96), color(80, 133, 139), color(91, 200, 175), color(255, 255, 255)]
-rect_colour = -1
-
-def setup():
-    createCanvas(400, 400)
-    noStroke()
-
-def draw():
-    background(204, 201, 231)
-    fill(colours[rect_colour])
-    rect(150, 150, 100, 100)
-    
-def mouseClicked():
-    if check_clicked(150, 150, 100, 100):
-        switch()
-
-def switch():
-    global rect_colour
-    if len(colours) > 5:
-        colours.pop()
-    last_rect_colour = rect_colour
-    rect_colour = int(random(len(colours)))
-    while rect_colour == last_rect_colour:
-        rect_colour = int(random(len(colours)))
+        try:
+            new_size = get_new_size(curr_size)
+            if isinstance(new_size, (int, float)):
+                curr_size = new_size
+        except:
+            pass
 `;
 
 const preBuiltCode = {
@@ -1884,7 +1869,6 @@ const preBuiltCode = {
 	"graphicClickerCode": graphicClickerCode,
 	"graphicSpeedballCode": graphicSpeedballCode,
 	"graphicGrowingsunCode": graphicGrowingsunCode,
-	"graphicButtonCode": graphicButtonCode,
 };
 
 export default preBuiltCode;

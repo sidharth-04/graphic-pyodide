@@ -476,15 +476,6 @@ def splice(*args):
 def subset(*args):
     return _P5_INSTANCE.subset(*args)
 
-def float(*args):
-    return _P5_INSTANCE.float(*args)
-
-def int(*args):
-    return _P5_INSTANCE.int(*args)
-
-def str(*args):
-    return _P5_INSTANCE.str(*args)
-
 def boolean(*args):
     return _P5_INSTANCE.boolean(*args)
 

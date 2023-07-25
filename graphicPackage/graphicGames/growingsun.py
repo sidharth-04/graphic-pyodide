@@ -15,4 +15,9 @@ def mousePressed():
     global curr_size
     x, y = mouseX, mouseY
     if dist(200, 300, x, y) < curr_size/2:
-        curr_size = get_new_size(curr_size)
+        try:
+            new_size = get_new_size(curr_size)
+            if isinstance(new_size, (int, float)):
+                curr_size = new_size
+        except:
+            pass
