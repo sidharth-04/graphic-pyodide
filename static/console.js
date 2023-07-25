@@ -10,9 +10,7 @@ function Console(outputElementID) {
     }
   
     this.addMessage = function(msg, error=false) {
-      if (!enabled) {
-        return;
-      }
+      if (!enabled) return;
       msg += "\n";
       if (error) {
         let errorDiv = $('<div>').addClass('error-message');

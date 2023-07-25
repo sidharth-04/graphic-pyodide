@@ -22,7 +22,7 @@
   </head>
   <body>
     <div class="jumbotron jumbotron-fluid">
-      <div class="container mt-3" id="header">
+      <div class="container p-3" id="header">
         <h3 class="text-center">P5 in Python with Pyodide</h3>
         <div id="control-panel">
           <select class="form-select form-select-sm text-center m-1" id="chooseGameType">
@@ -48,10 +48,13 @@
     <div id="editor"></div>
     <div id="runDiv">
       <div id="sketch-holder"></div>
-      <div id="console">
+      <div id="console-banner">
+        <p>Console</p>
+        <img src="./icons/stopIcon.svg" alt="" id="clear-console-btn">
       </div>
+      <div id="console"></div>
       <div class="input-group" id="console-input">
-        <input type="text" class="form-control" placeholder="" id="console-input-box">
+        <input type="text" class="form-control" placeholder="Enter your commands..." id="console-input-box">
         <div class="input-group-append">
           <button class="btn btn-outline-success" type="button" id="send-input-button">send</button>
         </div>

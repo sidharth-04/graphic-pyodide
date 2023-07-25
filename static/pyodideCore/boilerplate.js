@@ -1,6 +1,7 @@
 const importCode = `
 
 import traceback
+import signal
 from js import p5, window, log_error_to_console, initiate_worker_timer, cancel_worker_timer
 
 `;

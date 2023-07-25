@@ -48,6 +48,7 @@ async function setup() {
   $("#spinner").hide();
   $("#control-panel").show();
   stopBtn.disabled = true;
+  sendInputBtn.disabled = true;
 
   executeBtn.addEventListener("click", () => {
     if (programCurrentlyRunning) return;
@@ -64,10 +65,19 @@ async function setup() {
 
   inputBox.addEventListener("keydown", (event) => {
     if (event.key === 'Enter') {
+      sendInputBtn.disabled = true;
       handleInput(inputBox);
     }
   });
+  inputBox.addEventListener("input", (event) => {
+    if (inputBox.value.trim() === "") {
+      sendInputBtn.disabled = true;
+    } else {
+      sendInputBtn.disabled = false;
+    }
+  });
   sendInputBtn.addEventListener("click", () => {
+    sendInputBtn.disabled = true;
     handleInput(inputBox);
   });
 
@@ -79,6 +89,10 @@ async function setup() {
     } else {
       setToDefault();
     }
+  });
+  const clearConsoleBtn = document.getElementById("clear-console-btn");
+  clearConsoleBtn.addEventListener('click', () => {
+    consoleElement.clear();
   });
 }
 
@@ -98,7 +112,7 @@ function loadGame(gameType) {
 }
 function programRunning() {
   testingTimeout = setTimeout(() => {
-    runTests(userCode, consoleElement.fetchOutput());
+    // runTests(userCode, consoleElement.fetchOutput());
   }, 3000)
   stopBtn.disabled = false;
   executeBtn.disabled = true;
@@ -111,7 +125,8 @@ function programCompletedRunning() {
   testingTimeout = null;
   stopBtn.disabled = true;
   executeBtn.disabled = false;
-  sendInputBtn.disabled = false;
+  if (inputBox.value.trim() === "") sendInputBtn.disabled = true;
+  else sendInputBtn.disabled = false;
   inputBox.disabled = false;
   programCurrentlyRunning = false;
 }
@@ -119,6 +134,7 @@ function programCompletedRunning() {
 function handleInput(inputElement) {
   if (programCurrentlyRunning) return;
   let command = inputElement.value;
+  if (command.trim() === "") return;
   inputElement.value = "";
   if (command == "") return;
   consoleElement.addCommand(command);

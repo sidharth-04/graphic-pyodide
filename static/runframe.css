@@ -1,5 +1,6 @@
 #header {
-	height: 0vh;
+	height: 16vh;
+	padding-bottom: 0!important;
 }
 #spinner {
 	margin-top: 1em;
@@ -18,46 +19,65 @@
 
 #editor { 
 	position: absolute;
-	top: 18vh;
-	right: 425px;
+	top: 16vh;
+	right: 410px;
 	bottom: 0;
 	left: 0;
 }
 #runDiv { 
 	position: absolute;
-	top: 18vh;
+	top: 16vh;
 	right: 0;
 	bottom: 0;
 	width: 410px;
-	/* display: flex;
+	padding: 5px;
+	display: flex;
 	flex-direction: column;
-	align-items: center; */
+	align-items: center;
+	padding-top: 0;
 }
 #sketch-holder {
-	position: absolute;
-	right: 0;
-	top: 0;
-	order: 1;
 	border: None;
-	margin: 0 5px;
 	width: 400px;
 	height: 400px;
+}
+#console-banner {
+	font-family: Inconsolata,Menlo,Consolas,monospace;
+	width: 100%;
+	background-color: lightgray;
+	/* position: absolute; */
+	margin: 0;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+	height: 27px;
+	font-size: .875em;
+	padding: 0 14px;
+	opacity: 0.5;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+#console-banner p {
+	margin: 0;
+	padding-top: 4px;
+}
+#clear-console-btn {
+	width: 20px;
+	cursor: pointer;
 }
 #console {
 	display: flex;
 	flex-direction: column;
 	overflow: scroll;
-	position: absolute;
-	bottom: 5%;
-	order: 2;
-	width: 400px;
-	margin: 0 5px;
-	height: calc(100vh - 18vh - 405px - 5%);
+	width: 100%;
+	height: calc(100vh - 16vh - 400px - 25px - 5% - 12px);
 	border: 1px solid lightgray;
-	border-radius: 6px;
+	border-bottom-left-radius: 6px;
+	border-bottom-right-radius: 6px;
 	padding: 10px 14px;
-	font-family: monospace;
-	font-size: 13px;
+	font-family: Inconsolata,Menlo,Consolas,monospace;
+	/* font-family: Consolas,Monaco,'Andale Mono','Ubuntu Mono',monospace; */
+	font-size: .875em;
 	-moz-tab-size : 4;
 	-o-tab-size : 4;
 	   tab-size : 4;
@@ -69,32 +89,40 @@
 	margin-bottom: 5px;
 	padding: 10px;
 	background-color: #fec9c9;
-	border-color: red;
+	border: 1px solid rgb(254, 168, 168);
 	border-radius: 6px;
 	white-space: pre-wrap;
 	word-wrap: break-word;
 }
 #console .error-message p {
 	margin: 0;
+	font-size: .875em;
 }
 #console .error-message p.error-header {
 	font-weight: bold;
 }
 #console .console-text {
-	margin: 0;
+	margin: 0 10px;
 	white-space: pre-wrap;
 	word-wrap: break-word;
+	font-size: .875em;
+}
+#console code {
+	margin: 0 10px;
+	background-color: hsla(0,0%,100%,.5);
 }
 #console-input {
-	position: absolute;
-	order: 2;
-	width: 400px;
+	width: 100%;
 	height: 5%;
-	bottom: 0;
-	margin: 0 5px;
+	font-family: Inconsolata,Menlo,Consolas,monospace;
+	/* font-family: Consolas,Monaco,'Andale Mono','Ubuntu Mono',monospace; */
+	font-size: .875em;
+	-moz-tab-size : 4;
+	-o-tab-size : 4;
+	   tab-size : 4;
 }
 #console-input-box {
-	font-size: 13px;
+	font-size: 0.875em;
 }
 #console-input-box:focus {
 	outline: none;

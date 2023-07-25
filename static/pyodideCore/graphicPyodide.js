@@ -6,23 +6,16 @@ const inputDisabledMessage = "The input function is disabled in graphic mode";
 const interruptExecutionMessage = "The program was interrupted";
 const timeoutMessage = "The program took too long to run";
 const defineExceptions = `
-import signal
-
 def input(*args, **kwargs):
     raise Exception('${inputDisabledMessage}')
 
 def custom_interrupt_handler(signum, frame):
-    try:
-        raise Exception('${interruptExecutionMessage}')
-    except:
-        cancel_worker_timer()
-        traceback_str = traceback.format_exc()
-        log_error_to_console(traceback_str)
+    raise Exception('${interruptExecutionMessage}')
 
 def custom_timeout_handler(signum, frame):
     raise Exception('${timeoutMessage}')
 
-signal.signal(signal.SIGINT, custom_interrupt_handler)
+signal.signal(2, custom_interrupt_handler)
 signal.signal(3, custom_timeout_handler)
 `
 
@@ -100,7 +93,7 @@ function GraphicPyodide(consoleObj) {
         )
         let gameCode = "";
         if (gameType != "default") {
-            gameCode = gameMapper[gameType][0]
+            gameCode = gameMapper[gameType][0];
             outputToConsole(`<< ${gameMapper[gameType][2]} Game Loaded >>`, false);
         }
         let mainCode = buildCode(
@@ -124,7 +117,17 @@ function GraphicPyodide(consoleObj) {
     function setCheckForInterruptInterval() {
         if (checkForInterruptInterval != null) return;
         checkForInterruptInterval = setInterval(() => {
-            pyodide.checkInterrupt();
+            if (interruptBuffer[0] == 2) {
+                interruptBuffer[0] = 0;
+                pyodide.runPython(`
+                try:
+                    raise Exception('${interruptExecutionMessage}')
+                except:
+                    cancel_worker_timer()
+                    traceback_str = traceback.format_exc()
+                    log_error_to_console(traceback_str)
+                `);
+            }
         }, 300);
     }
     function clearCheckForInterruptInterval() {
