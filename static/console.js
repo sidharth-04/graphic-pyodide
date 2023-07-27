@@ -11,7 +11,6 @@ function Console(outputElementID) {
   
     this.addMessage = function(msg, error=false) {
       if (!enabled) return;
-      msg += "\n";
       if (error) {
         let errorDiv = $('<div>').addClass('error-message');
         $('<p>').addClass('error-header').text("Traceback").appendTo(errorDiv);
@@ -32,10 +31,6 @@ function Console(outputElementID) {
   
     function updated() {
       outputBox.scrollTop(outputBox[0].scrollHeight);
-    }
-  
-    this.fetchOutput = function() {
-      return outputBox.value;
     }
   
     this.clear = function() {

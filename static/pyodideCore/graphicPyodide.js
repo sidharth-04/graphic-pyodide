@@ -24,6 +24,7 @@ function GraphicPyodide(consoleObj) {
     let gameType = "default";
     let userCode = "";
     let consoleElement = consoleObj;
+    let currentProgramConsoleOutput = "";
     let interruptBuffer = new Uint8Array(new SharedArrayBuffer(1));
     let checkForInterruptInterval = null;
     let onErrorCallback = () => {};
@@ -42,6 +43,7 @@ function GraphicPyodide(consoleObj) {
         timerHandler.initialize(interruptBuffer);
         const config = {
             stdout: (output) => {
+                currentProgramConsoleOutput += output+"\n";
                 outputToConsole(output, false);
             }
         }
@@ -85,6 +87,7 @@ function GraphicPyodide(consoleObj) {
 
     this.runCode = function(code) {
         userCode = code;
+        currentProgramConsoleOutput = "";
         interruptBuffer[0] = 0;
         resetWindow();
         let initializeCode = buildCode(
@@ -128,7 +131,7 @@ function GraphicPyodide(consoleObj) {
                     log_error_to_console(traceback_str)
                 `);
             }
-        }, 300);
+        }, 500);
     }
     function clearCheckForInterruptInterval() {
         clearInterval(checkForInterruptInterval);
@@ -136,6 +139,7 @@ function GraphicPyodide(consoleObj) {
     }
 
     function handleError(err) {
+        console.log(currentProgramConsoleOutput);
         resetWindow();
         clearCheckForInterruptInterval();
         onErrorCallback();
@@ -182,7 +186,7 @@ function GraphicPyodide(consoleObj) {
     }
 
     function outputToConsole(output, errorOccurred) {
-        consoleElement.addMessage(output, errorOccurred);
+        consoleElement.addMessage(output+"\n", errorOccurred);
     }
 
     function resetWindow() {
@@ -204,13 +208,10 @@ function GraphicPyodide(consoleObj) {
         interruptBuffer[0] = 2;
     }
 
-    this.runTests = function(codeToCheck, consoleOutput, jsonFile) {
+    this.runTests = function(codeToCheck, jsonFile) {
         consoleElement.disable();
         timerHandler.initiateInitializationTimer();
-        pyodide.globals.set("code_to_check", codeToCheck)
-        pyodide.globals.set("console_output", consoleOutput)
-        pyodide.globals.set("json_file", jsonFile)
-        let testResults = pyodide.runPython(preBuiltCode.testingCode).toJs();
+        let testResults = getTestResults(codeToCheck, jsonFile);
         timerHandler.cancelInitializationTimer();
         consoleElement.enable();
         if (testResults[0].has("ErrorEncountered")) {
@@ -218,6 +219,13 @@ function GraphicPyodide(consoleObj) {
             outputToConsole(testResults[0].get("ErrorEncountered"), true);
         }
         return testResults;
+    }
+    function getTestResults(codeToCheck, jsonFile) {
+        let consoleOutput = currentProgramConsoleOutput;
+        pyodide.globals.set("code_to_check", codeToCheck)
+        pyodide.globals.set("console_output", consoleOutput)
+        pyodide.globals.set("json_file", jsonFile)
+        return pyodide.runPython(preBuiltCode.testingCode).toJs();
     }
 
     this.setGameType = function(type) {

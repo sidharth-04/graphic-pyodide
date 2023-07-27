@@ -1,14 +1,20 @@
 import GraphicPyodide from "./pyodideCore/graphicPyodide.js";
 import Console from "./console.js"
 
+// DOM Elements
+const executeBtn = document.getElementById("executeBtn");
+const stopBtn = document.getElementById("stopBtn");
+const sendInputBtn = document.getElementById("send-input-button");
+const inputBox = document.getElementById("console-input-box");
+const graphicGameSelect = document.getElementById("chooseGameType");
+const clearConsoleBtn = document.getElementById("clear-console-btn");
+
+// Objects
 let editor;
 let consoleElement = new Console("console");
 let graphicPyodide = new GraphicPyodide(consoleElement);
-let programCurrentlyRunning = false;
-let testingTimeout = null;
-let userCode;
 
-// Standard default code
+// Runtime Vars
 const defaultCode = 
 `x = 0
 def setup():
@@ -21,35 +27,43 @@ def draw():
     x += 1
 `;
 let initialUserCode = defaultCode;
+let userCode;
+let programCurrentlyRunning = false;
+let testingTimeout = null;
 
-const executeBtn = document.getElementById("executeBtn");
-const stopBtn = document.getElementById("stopBtn");
-const sendInputBtn = document.getElementById("send-input-button");
-const inputBox = document.getElementById("console-input-box");
-
-async function setup() {
+function showLoading() {
   $("#control-panel").hide();
   $("#spinner").show();
+}
 
-  // Ace editor window
+function loadEditor() {
   editor = ace.edit("editor");
   editor.setTheme("ace/theme/clouds");
   editor.session.setMode("ace/mode/python");
+}
 
-  // Set initial code in editor
-  setToDefault();
+function setToDefault() {
+  initialUserCode = defaultCode;
+  editor.setValue(initialUserCode);
+  if (graphicPyodide) graphicPyodide.setDefaultGameType();
+}
 
-  // Load GraphicPyodide object
+async function loadPyodide() {
   await graphicPyodide.setup();
   graphicPyodide.setOnErrorCallback(() => {
     programCompletedRunning();
   });
+}
 
+function showControlPanel() {
   $("#spinner").hide();
   $("#control-panel").show();
   stopBtn.disabled = true;
   sendInputBtn.disabled = true;
+}
 
+function setupEventListeners() {
+  // Run Button
   executeBtn.addEventListener("click", () => {
     if (programCurrentlyRunning) return;
     programRunning();
@@ -58,17 +72,13 @@ async function setup() {
     graphicPyodide.runCode(userCode);
   });
 
+  // Stop Button
   stopBtn.addEventListener("click", () => {
     if (!programCurrentlyRunning) return;
     graphicPyodide.stopExecution();
   });
 
-  inputBox.addEventListener("keydown", (event) => {
-    if (event.key === 'Enter') {
-      sendInputBtn.disabled = true;
-      handleInput(inputBox);
-    }
-  });
+  // Sending Input to Console
   inputBox.addEventListener("input", (event) => {
     if (inputBox.value.trim() === "") {
       sendInputBtn.disabled = true;
@@ -76,12 +86,16 @@ async function setup() {
       sendInputBtn.disabled = false;
     }
   });
+  inputBox.addEventListener("keydown", (event) => {
+    if (event.key === 'Enter') {
+      handleInput();
+    }
+  });
   sendInputBtn.addEventListener("click", () => {
-    sendInputBtn.disabled = true;
-    handleInput(inputBox);
+    handleInput();
   });
 
-  const graphicGameSelect = document.getElementById("chooseGameType");
+  // Graphic Games Selection
   graphicGameSelect.addEventListener("change", () => {
     let graphicGameText = graphicGameSelect.value;
     if (graphicGameText != "Choose a graphic game") {
@@ -90,18 +104,21 @@ async function setup() {
       setToDefault();
     }
   });
-  const clearConsoleBtn = document.getElementById("clear-console-btn");
+
+  // Clearing Console
   clearConsoleBtn.addEventListener('click', () => {
     consoleElement.clear();
   });
 }
 
-await setup();
-
-function setToDefault() {
-  initialUserCode = defaultCode;
-  editor.setValue(initialUserCode);
-  if (graphicPyodide) graphicPyodide.setDefaultGameType();
+function handleInput() {
+  if (programCurrentlyRunning) return;
+  let command = inputBox.value;
+  if (command.trim() === "") return;
+  inputBox.value = "";
+  sendInputBtn.disabled = true;
+  consoleElement.addCommand(command);
+  graphicPyodide.evaluateConsoleCode(command);
 }
 
 function loadGame(gameType) {
@@ -110,10 +127,9 @@ function loadGame(gameType) {
   initialUserCode = 'def '+functionSignature+':\n\t# Write your code below this line\n\tpass';
   editor.setValue(initialUserCode);
 }
+
 function programRunning() {
-  testingTimeout = setTimeout(() => {
-    // runTests(userCode, consoleElement.fetchOutput());
-  }, 3000)
+  testingTimeout = setTimeout(runTests, 3000)
   stopBtn.disabled = false;
   executeBtn.disabled = true;
   sendInputBtn.disabled = true;
@@ -131,17 +147,8 @@ function programCompletedRunning() {
   programCurrentlyRunning = false;
 }
 
-function handleInput(inputElement) {
-  if (programCurrentlyRunning) return;
-  let command = inputElement.value;
-  if (command.trim() === "") return;
-  inputElement.value = "";
-  if (command == "") return;
-  consoleElement.addCommand(command);
-  graphicPyodide.evaluateConsoleCode(command);
-}
-
-function runTests(codeToCheck, consoleOutput) {
+function runTests() {
+  let codeToCheck = userCode;
   let jsonFile = {"tests": [
       {
         "name": "print function used",
@@ -152,19 +159,34 @@ function runTests(codeToCheck, consoleOutput) {
         }
     },
     {
-      "name": "sum 5 function test",
-      "type": "function",
-      "feedback": "Check the sum function",
+      "name": "hello world in output",
+      "type": "output",
+      "feedback": "Check if you used the print function to correctly print a msg.",
       "info": {
-          "function": "sum5",
-          "cases": [
-            {"args": [12], "expected_return_value": 17},
-            {"args": [1], "expected_return_value": 6},
-            {"args": [10], "expected_return_value": 15}
-          ]
+          "output": "hello world"
       }
-    }
+    },
+    // {
+    //   "name": "sum 5 function test",
+    //   "type": "function",
+    //   "feedback": "Check the sum function",
+    //   "info": {
+    //       "function": "sum5",
+    //       "cases": [
+    //         {"args": [12], "expected_return_value": 17},
+    //         {"args": [1], "expected_return_value": 6},
+    //         {"args": [10], "expected_return_value": 15}
+    //       ]
+    //   }
+    // }
   ]};
-  let testResults = graphicPyodide.runTests(codeToCheck, consoleOutput, jsonFile);
+  let testResults = graphicPyodide.runTests(codeToCheck, jsonFile);
   console.log(testResults);
 }
+
+showLoading();
+loadEditor();
+setToDefault();
+await loadPyodide();
+showControlPanel();
+setupEventListeners();
