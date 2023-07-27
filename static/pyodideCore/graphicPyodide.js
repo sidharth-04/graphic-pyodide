@@ -1,5 +1,5 @@
 import preBuiltCode from "./boilerplate.js";
-import TimerHandler from "./timerHandler.js"
+import TimerHandler from "./timerHandler.js";
 
 // Put these code snippets as part of the preBuiltCode
 const inputDisabledMessage = "The input function is disabled in graphic mode";
@@ -142,8 +142,9 @@ function GraphicPyodide(consoleObj) {
         console.log(currentProgramConsoleOutput);
         resetWindow();
         clearCheckForInterruptInterval();
-        onErrorCallback();
         let formattedError = formatError(String(err), false);
+        let errList = formattedError.split('\n');
+        onErrorCallback(errList[errList.length-1]);
         outputToConsole(formattedError, true);
     }
 
@@ -237,6 +238,9 @@ function GraphicPyodide(consoleObj) {
     }
     this.getFunctionSignatureForGame = function() {
         return gameMapper[gameType][1];
+    }
+    this.clearNamespace = function() {
+        pyodide.runPython(preBuiltCode.clearNamespaceCode);
     }
 }
 

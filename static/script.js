@@ -50,7 +50,8 @@ function setToDefault() {
 
 async function loadPyodide() {
   await graphicPyodide.setup();
-  graphicPyodide.setOnErrorCallback(() => {
+  graphicPyodide.setOnErrorCallback((err) => {
+    console.log(err);
     programCompletedRunning();
   });
 }
