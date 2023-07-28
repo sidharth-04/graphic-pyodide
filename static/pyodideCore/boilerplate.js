@@ -1636,12 +1636,14 @@ class Tester:
     
     def run_regex_test(self, data):
         pattern = data.string
-        # test_string = r'{}'.format(self.code_to_check)
         test_string = self.code_to_check
         if re.search(pattern, test_string):
             return "success"
-        else:
-            return "fail"
+        for alt_pattern in data.alternatives:
+            if re.search(alt_pattern, test_string):
+                return "success"
+        return "fail"
+        # test_string = r'{}'.format(self.code_to_check)
 
     def run_output_test(self, data):
         pattern = data.output

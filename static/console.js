@@ -23,7 +23,7 @@ function Console(outputElementID) {
     }
   
     this.addCommand = function(cmd) {
-      let codeSnippet = $('<code>').addClass('language-python').text("=> "+cmd);
+      let codeSnippet = $('<code>').addClass('language-python').text(">>> "+cmd);
       codeSnippet.appendTo(outputBox);
       Prism.highlightElement(codeSnippet[0]);
       updated();
