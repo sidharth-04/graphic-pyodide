@@ -1,0 +1,19 @@
+{
+    "gameType": "clicker",
+    "tests": [
+        {
+            "name": "change_colour function test",
+            "type": "function",
+            "feedback": "Check the change_colour function, there seems to be an issue.",
+            "info": {
+                "function": "change_colour",
+                "cases": [
+					{"args": ["blue"], "expected_return_value": "red"},
+					{"args": ["red"], "expected_return_value": "green"},
+					{"args": ["green"], "expected_return_value": "blue"},
+					{"args": ["black"], "expected_return_value": "blue"}
+                ]
+            }
+        }
+    ]
+}

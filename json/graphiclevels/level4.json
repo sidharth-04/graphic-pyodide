@@ -1,0 +1,19 @@
+{
+    "gameType": "rockboat",
+    "tests": [
+        {
+            "name": "change_direction function test",
+            "type": "function",
+            "feedback": "Check the change_direction function, there seems to be an issue.",
+            "info": {
+                "function": "change_direction",
+                "cases": [
+					{"args": [51], "expected_return_value": 1},
+					{"args": [-51], "expected_return_value": 1},
+					{"args": [10], "expected_return_value": 0},
+					{"args": [-20], "expected_return_value": 0}
+                ]
+            }
+        }
+    ]
+}

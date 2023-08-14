@@ -1,0 +1,19 @@
+{
+    "gameType": "growingsun",
+    "tests": [
+        {
+            "name": "get_new_size function test",
+            "type": "function",
+            "feedback": "Check the get_new_size function, it should return the value of size increased by 10.",
+            "info": {
+                "function": "get_new_size",
+                "cases": [
+					{"args": [12], "expected_return_value": 22},
+					{"args": [1], "expected_return_value": 11},
+					{"args": [10], "expected_return_value": 20},
+					{"args": [0], "expected_return_value": 10}
+                ]
+            }
+        }
+    ]
+}

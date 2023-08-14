@@ -52,9 +52,10 @@ class Tester:
         test_string = self.code_to_check
         if re.search(pattern, test_string):
             return "success"
-        for alt_pattern in data.alternatives:
-            if re.search(alt_pattern, test_string):
-                return "success"
+        if data.hasOwnProperty('alternatives'):
+            for alt_pattern in data.alternatives:
+                if re.search(alt_pattern, test_string):
+                    return "success"
         return "fail"
         # test_string = r'{}'.format(self.code_to_check)
 
