@@ -9,22 +9,17 @@ const inputBox = document.getElementById("console-input-box");
 const graphicGameSelect = document.getElementById("chooseGameType");
 const clearConsoleBtn = document.getElementById("clear-console-btn");
 
+import initialCodeSnippet from "./initialization/startupcode.js";
+
 // Objects
 let editor;
 let consoleElement = new Console("console");
 let graphicPyodide = new GraphicPyodide(consoleElement);
 
 // Runtime Vars
-const defaultCode = 
-`x = 0
-def setup():
-    createCanvas(400, 400)
+const defaultCode = initialCodeSnippet;
+`
 
-def draw():
-    global x
-    background(0)
-    ellipse(x, 200, 100, 100)
-    x += 1
 `;
 let initialUserCode = defaultCode;
 let userCode;
