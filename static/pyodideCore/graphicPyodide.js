@@ -25,7 +25,7 @@ function GraphicPyodide(consoleObj) {
     let userCode = "";
     let consoleElement = consoleObj;
     let currentProgramConsoleOutput = "";
-    let interruptBuffer = new Uint8Array(new SharedArrayBuffer(1));
+    let interruptBuffer = new Uint8Array(new ArrayBuffer(1));
     let checkForInterruptInterval = null;
     let onErrorCallback = () => {};
     let timerHandler;
