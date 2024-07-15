@@ -687,12 +687,6 @@ def map(*args):
     else:
         return _P5_INSTANCE.map(*args)
 
-def max(*args):
-    return _P5_INSTANCE.max(*args)
-
-def min(*args):
-    return _P5_INSTANCE.min(*args)
-
 def norm(*args):
     return _P5_INSTANCE.norm(*args)
 
@@ -1687,6 +1681,29 @@ def test_student_code():
 test_student_code()
 `;
 
+const graphicClickerCode = `
+circle_colour = "blue"
+
+def setup():
+    createCanvas(400, 400)
+    noStroke()
+
+def draw():
+    background(200)
+    fill(circle_colour)
+    ellipse(200, 200, 100, 100)
+
+def mousePressed():
+    global circle_colour
+    if dist(200, 200, mouseX, mouseY) < 50:
+        try:
+            new_colour = change_colour(circle_colour)
+            fill(new_colour)
+            circle_colour = new_colour
+        except:
+            pass
+`;
+
 const graphicRockboatCode = `
 noise_y = 0
 noise_speed = 0.03
@@ -1749,54 +1766,6 @@ def draw():
     endShape(LINES)
 `;
 
-const graphicBouncerCode = `
-circleX = 50
-vel = 2
-
-def setup():
-    createCanvas(400, 400)
-    noStroke()
-
-def draw():
-    global circleX
-    global vel
-    
-    background(200)
-    fill("red")
-    ellipse(circleX, 200, 100, 100)
-    
-    # Update circle's x position
-    circleX += vel
-    try:
-        if at_edge(circleX):
-            vel *= -1
-    except:
-        pass
-`;
-
-const graphicClickerCode = `
-circle_colour = "blue"
-
-def setup():
-    createCanvas(400, 400)
-    noStroke()
-
-def draw():
-    background(200)
-    fill(circle_colour)
-    ellipse(200, 200, 100, 100)
-
-def mousePressed():
-    global circle_colour
-    if dist(200, 200, mouseX, mouseY) < 50:
-        try:
-            new_colour = change_colour(circle_colour)
-            fill(new_colour)
-            circle_colour = new_colour
-        except:
-            pass
-`;
-
 const graphicSpeedballCode = `
 speed = 1
 posVec = createVector(200, 200)
@@ -1831,6 +1800,31 @@ def mousePressed():
 				print("You clicked me! My new speed is "+str(speed))
 		except:
 			pass
+`;
+
+const graphicBouncerCode = `
+circleX = 50
+vel = 2
+
+def setup():
+    createCanvas(400, 400)
+    noStroke()
+
+def draw():
+    global circleX
+    global vel
+    
+    background(200)
+    fill("red")
+    ellipse(circleX, 200, 100, 100)
+    
+    # Update circle's x position
+    circleX += vel
+    try:
+        if at_edge(circleX):
+            vel *= -1
+    except:
+        pass
 `;
 
 const graphicGrowingsunCode = `
@@ -1868,10 +1862,10 @@ const preBuiltCode = {
 	"clearNamespaceCode": clearNamespaceCode,
 	"graphicPackageCode": graphicPackageCode,
 	"testingCode": testingCode,
-	"graphicRockboatCode": graphicRockboatCode,
-	"graphicBouncerCode": graphicBouncerCode,
 	"graphicClickerCode": graphicClickerCode,
+	"graphicRockboatCode": graphicRockboatCode,
 	"graphicSpeedballCode": graphicSpeedballCode,
+	"graphicBouncerCode": graphicBouncerCode,
 	"graphicGrowingsunCode": graphicGrowingsunCode,
 };
 
